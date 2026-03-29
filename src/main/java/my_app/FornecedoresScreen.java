@@ -5,28 +5,29 @@ import megalodonte.ListState;
 import megalodonte.State;
 import megalodonte.base.Redirect;
 import megalodonte.base.UI;
+import megalodonte.base.components.Component;
+import megalodonte.base.components.ScreenComponent;
 import megalodonte.components.Button;
-import megalodonte.components.Component;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.inputs.Input;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
-import megalodonte.router.v2.Router;
+import megalodonte.router.v3.ScreenContext;
 import my_app.models.FornecedorModel;
 
 import java.util.List;
 
-public class FornecedoresScreen {
-    private final Router router;
+public class FornecedoresScreen implements ScreenComponent {
+    private final ScreenContext context;
     State<String> cnpj = State.of("");
     State<String> siteUrl = State.of("");
 
     ListState<FornecedorModel> fornecedorModelListState = ListState.of(List.of());
 
-    public FornecedoresScreen(Router router){
-        this.router = router;
+    public FornecedoresScreen(ScreenContext context){
+        this.context = context;
         loadList();
     }
 
@@ -48,7 +49,7 @@ public class FornecedoresScreen {
                 .children(
                         new Button("Siga-me no Github").onClick(()-> Redirect.to("https://github.com/eliezer-dev-software-enginner")),
                         new SpacerVertical(10),
-                        new Text("Algumas facilidades para agilizar o cadastro de fornecedores no PNCP"),
+                        new Text("Algumas facilidades para agilizar o cadastro de fornecedores no Siplan Web"),
                         new SpacerVertical(20),
                         new Text("CNPJ do fornecedor"),
                         new Input(cnpj, new InputProps().placeHolder("Ex: xxxxxxxxxx").borderColor("black")),

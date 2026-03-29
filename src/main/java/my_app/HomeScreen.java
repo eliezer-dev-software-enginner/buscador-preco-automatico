@@ -1,31 +1,24 @@
 package my_app;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.stage.Stage;
 import megalodonte.*;
 import megalodonte.base.Redirect;
 import megalodonte.base.UI;
+import megalodonte.base.components.ScreenComponent;
 import megalodonte.components.*;
 import megalodonte.components.inputs.Input;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
-import megalodonte.router.v2.Router;
-import megalodonte.utils.related.TextVariant;
+import megalodonte.router.v3.ScreenContext;
 import my_app.models.ProdutoModel;
-
+import megalodonte.base.components.Component;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-public class HomeScreen {
-
-    private final Router router;
+public class HomeScreen implements ScreenComponent {
+    private final ScreenContext context;
 
     State<String> tituloBusca = State.of("");
     State<String> codigo = State.of("");
@@ -45,7 +38,9 @@ public class HomeScreen {
         return Utils.toBRLCurrency(BigDecimal.valueOf(result));
     }, precoState1, precoState2, precoState3 );
 
-    public HomeScreen(Router router) {this.router = router;}
+    public HomeScreen(ScreenContext context) {
+        this.context = context;
+    }
 
     public Component render() {
 
@@ -79,26 +74,28 @@ public class HomeScreen {
         return new MenuBar()
                 .menu(new Menu("Cadastros")
                         .item("Fornecedores", ()-> {
-                           var stage =  new Stage();
-                           stage.setTitle("Fornecedores - Site/CNPJ");
+                          // var stage =  new Stage();
+                           //stage.setTitle("Fornecedores - Site/CNPJ");
 
-                           var scene = new Scene((Parent) new FornecedoresScreen(router).render().getJavaFxNode());
-                           stage.setScene(scene);
-                           stage.setWidth(800);
-                           stage.setHeight(600);
+                          context.router().spawnWindow("fornecedores",e-> System.out.println(e.getMessage()));
 
-                           stage.show();
+//                           var scene = new Scene((Parent) new FornecedoresScreen(router).render().getJavaFxNode());
+//                           stage.setScene(scene);
+//                           stage.setWidth(800);
+//                           stage.setHeight(600);
+//
+//                           stage.show();
                         })
                         .item("Ver Produtos", ()-> {
-                            var stage =  new Stage();
-                            stage.setTitle("Produtos");
-
-                            var scene = new Scene((Parent) new ProdutosTableScreen(router).render().getJavaFxNode());
-                            stage.setScene(scene);
-                            stage.setWidth(800);
-                            stage.setHeight(600);
-
-                            stage.show();
+//                            var stage =  new Stage();
+//                            stage.setTitle("Produtos");
+//
+//                            var scene = new Scene((Parent) new ProdutosTableScreen(router).render().getJavaFxNode());
+//                            stage.setScene(scene);
+//                            stage.setWidth(800);
+//                            stage.setHeight(600);
+//
+//                            stage.show();
                         })
                 );
     }

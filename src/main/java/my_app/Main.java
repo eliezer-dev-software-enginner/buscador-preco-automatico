@@ -4,8 +4,8 @@ import javafx.stage.Stage;
 import megalodonte.ListenerManager;
 import megalodonte.application.Context;
 import megalodonte.application.MegalodonteApp;
-import megalodonte.base.RouteProps;
-import megalodonte.router.v2.Router;
+import megalodonte.router.v3.RouteProps;
+import megalodonte.router.v3.Router;
 import my_app.hotreload.HotReload;
 
 import java.util.Set;
@@ -24,12 +24,12 @@ public class Main {
             context.useRouter(router);
             context.useView(router.entrypoint().view());
 
-            //initialize(context);
-            initialize(router, context);
+            initialize(context);
 
             MegalodonteApp.onShutdown(() -> {
                 System.out.println("Clicked on X - close application");
-                hotReload.stop();
+
+                if(hotReload != null) hotReload.stop();
                 ListenerManager.disposeAll();
                 EventBus.getInstance().disposeAll();
             });
@@ -44,21 +44,18 @@ public class Main {
         stage.setHeight(650);
 
         var routes = Set.of(
-                new Router.Route("home", router -> new HomeScreen(router),
+                new Router.Route("home", ctx -> new HomeScreen(ctx),
                         new RouteProps(900, 550,null, false)),
                 //ok
-                new Router.Route("screen-b",router-> new FornecedoresScreen(router),
-                        new RouteProps(1000, 650, "Tela B", true))
+                new Router.Route("fornecedores",ctx-> new FornecedoresScreen(ctx),
+                        new RouteProps(900, 550, "Fornecedores", true))
         );
 
         return new Router(routes, "home");
     }
 
-    //public static void initialize(Context context) {
-    public static void initialize(Router router, Context context) {
-        //context.useView(new HomeScreen().render());
+    public static void initialize(Context context) {
 
-        context.useView(router.entrypoint().view());
         if (devMode) {
            hotReload = new HotReload()
                 .sourcePath("src/main/java")

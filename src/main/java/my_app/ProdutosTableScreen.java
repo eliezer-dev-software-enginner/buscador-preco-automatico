@@ -3,24 +3,21 @@ package my_app;
 import javafx.scene.input.ClipboardContent;
 import megalodonte.ComputedState;
 import megalodonte.ListState;
-import megalodonte.Show;
 import megalodonte.State;
-import megalodonte.base.Redirect;
 import megalodonte.base.UI;
-import megalodonte.components.*;
-import megalodonte.components.inputs.Input;
+import megalodonte.base.components.Component;
+import megalodonte.components.Button;
+import megalodonte.components.SimpleTable;
+import megalodonte.components.SpacerVertical;
+import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Row;
-import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
-import megalodonte.props.InputProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v2.Router;
+import megalodonte.router.v3.Router;
 import megalodonte.utils.related.TextVariant;
 import my_app.models.ProdutoModel;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 public class ProdutosTableScreen {
