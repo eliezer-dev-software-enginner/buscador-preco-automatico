@@ -1,6 +1,7 @@
 package my_app.screens;
 
 import javafx.scene.input.ClipboardContent;
+import javafx.stage.Stage;
 import megalodonte.ComputedState;
 import megalodonte.ListState;
 import megalodonte.State;
@@ -14,7 +15,6 @@ import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v3.Router;
 import megalodonte.utils.related.TextVariant;
 import my_app.*;
 import my_app.models.ProdutoModel;
@@ -24,9 +24,11 @@ import java.util.List;
 
 public class ProdutosTableScreen implements ScreenComponent {
 
+    private final Stage stage;
     ListState<ProdutoModel> produtosListState = ListState.of(List.of());
 
-    public ProdutosTableScreen() {
+    public ProdutosTableScreen(Stage stage) {
+        this.stage = stage;
         fetchData();
 
         EventBus.getInstance().subscribe(event -> {
@@ -114,9 +116,15 @@ public class ProdutosTableScreen implements ScreenComponent {
                         var content = new ClipboardContent();
                         content.putString(cnpjFromUrl);
                         clipboard.setContent(content);
-                        Components.ShowPopup(Main.stage, "CNPJ copiado para o teclado!");
+                        Components.ShowPopup(stage, "CNPJ copiado para o teclado!");
                     }))
-                    .c_child(Components.TextWithDetails("Preço: ", Utils.toBRLCurrency(f.getPrecoEncontrado())))
+                    .c_child(Components.TextWithDetailsAndButton("Preço: ", Utils.toBRLCurrency(f.getPrecoEncontrado()),"Copiar preço", ()->{
+                        var clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                        var content = new ClipboardContent();
+                        content.putString(Utils.toBRLNumber(f.getPrecoEncontrado()));
+                        clipboard.setContent(content);
+                        Components.ShowPopup(stage, "Preço copiado para o teclado!");
+                    }))
                     .c_child(new Button(imprimiuStr).onClick(()->{
                         boolean newStateValue = !imprimiu.get();
                         imprimiu.set(newStateValue);

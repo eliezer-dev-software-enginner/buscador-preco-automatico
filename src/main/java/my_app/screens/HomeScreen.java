@@ -148,13 +148,15 @@ public class HomeScreen implements ScreenComponent {
                                         e -> System.out.println(e.getMessage())))
                        // .item("Ver Produtos", () -> router.spawnWindow("produtos", System.out::println))
                         .item("produtos", ()->{
-                            var scene = new Scene((Parent) new ProdutosTableScreen().render().getJavaFxNode(), 900, 550);
-
                             var stage = new Stage();
+                            var scene = new Scene((Parent) new ProdutosTableScreen(stage).render().getJavaFxNode(), 900, 550);
+
+
                             stage.setScene(scene);
                             stage.setTitle("Produtos");
                             stage.show();
                         })
+                        .item("Abrir siplan-web", ()-> Utils.abrirUrlEmBrowser("https://pm-braspires.siplanweb.com.br/siplan-v2/siplan"))
                 );
     }
 

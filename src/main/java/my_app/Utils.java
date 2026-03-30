@@ -23,6 +23,14 @@ public class Utils {
         return splited[0] + ".br";
     }
 
+    //R$ 40,00 terermos: 40,00
+    public static String toBRLNumber(BigDecimal value) {
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        return nf.format(value);
+    }
+
     public static String toBRLCurrency(BigDecimal value){
         final NumberFormat BRL =
                 NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
