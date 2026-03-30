@@ -2,5 +2,5 @@
 package my_app.hotreload;
 
 public interface Reloader {
-    void reload(Object context, String screenClassName, String classesPath);
+    void reload(Object context, String screenClassName, String classesPath, Boolean hasRouteDefined);
 }

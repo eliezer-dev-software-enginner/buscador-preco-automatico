@@ -29,6 +29,7 @@ public class HotReload {
     private Path resourcesPath;
 
     private static final long WATCHER_TIMEOUT_MS = 500;
+    private boolean hasRouteDefined = false;
 
     public HotReload() {}
 
@@ -275,8 +276,8 @@ public class HotReload {
         runLaterMethod.invoke(null, (Runnable) () -> {
             try {
                 // Passa o contexto, o nome da screen class e o classesPath
-                Method reloadWithScreen = reloaderClass.getMethod("reload", Object.class, String.class, String.class);
-                reloadWithScreen.invoke(reloader, reloadContext, screenClassName, classesPath.toString());
+                Method reloadWithScreen = reloaderClass.getMethod("reload", Object.class, String.class, String.class, Boolean.class);
+                reloadWithScreen.invoke(reloader, reloadContext, screenClassName, classesPath.toString(), hasRouteDefined);
                 System.out.println("[HotReload] Reload finished.");
             } catch (Exception e) {
                 System.err.println("[HotReload] Error during reload execution.");
@@ -319,5 +320,10 @@ public class HotReload {
         String combinedPath = String.join(System.getProperty("path.separator"), paths);
         System.out.println("[HotReload Debug] Combined module path: " + combinedPath);
         return combinedPath;
+    }
+
+    public HotReload useRouter() {
+        this.hasRouteDefined = true;
+        return this;
     }
 }
