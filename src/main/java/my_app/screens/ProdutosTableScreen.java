@@ -6,6 +6,7 @@ import megalodonte.ListState;
 import megalodonte.State;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
+import megalodonte.base.components.ScreenComponent;
 import megalodonte.components.Button;
 import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
@@ -21,15 +22,11 @@ import my_app.models.ProdutoModel;
 import java.io.IOException;
 import java.util.List;
 
-public class ProdutosTableScreen {
-
-    private final Router router;
+public class ProdutosTableScreen implements ScreenComponent {
 
     ListState<ProdutoModel> produtosListState = ListState.of(List.of());
 
-    public ProdutosTableScreen(Router router) {
-        this.router = router;
-
+    public ProdutosTableScreen() {
         fetchData();
 
         EventBus.getInstance().subscribe(event -> {
@@ -136,24 +133,4 @@ public class ProdutosTableScreen {
 
         return col;
     }
-
-//    Component ItemDetails(ProdutoModel model){
-//        return new Column(new ColumnProps().paddingAll(20))
-//                .c_child(new Text("Detalhes do produto", new TextProps().variant(TextVariant.SUBTITLE)))
-//                .c_child(new SpacerVertical(20))
-//                .c_child(Components.TextWithDetails("Código: ", model.codigo))
-//                .c_child(Components.TextWithDetails("Titulo: ", model.tituloBusca))
-//                .c_child(new Text("--------Fornecedor 1--------------"))
-//                .c_child(Components.TextWithDetails("URL: ", model.urlEncontrada))
-//                .c_child(Components.TextWithDetails("CNPJ: ", cnpjFromUrl(model.urlEncontrada)))
-//                .c_child(Components.TextWithDetails("Preço (R$): ", Utils.toBRLCurrency(model.precoEncontrado)))
-//                .c_child(new Text("--------Fornecedor 2--------------"))
-//                .c_child(Components.TextWithDetails("URL: ", model.urlEncontrada))
-//                .c_child(Components.TextWithDetails("CNPJ: ", cnpjFromUrl(model.urlEncontrada)))
-//                .c_child(Components.TextWithDetails("Preço (R$): ", Utils.toBRLCurrency(model.precoEncontrado)))
-//                .c_child(new Text("--------Fornecedor 3--------------"))
-//                .c_child(Components.TextWithDetails("URL: ", model.urlEncontrada))
-//                .c_child(Components.TextWithDetails("CNPJ: ", cnpjFromUrl(model.urlEncontrada)))
-//                .c_child(Components.TextWithDetails("Preço (R$): ", Utils.toBRLCurrency(model.precoEncontrado)));
-//    }
 }
