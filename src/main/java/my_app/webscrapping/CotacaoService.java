@@ -31,7 +31,10 @@ public class CotacaoService {
             new LoganMedScrapper(),
             new GabmedicScrapper(),
             new KajavetScrapper(),
-            new DrogariaEFarmaScrapper()
+            new DrogariaEFarmaScrapper(),
+            new EspecifarmaScrapper(),
+            new MagazineMedicaScrapper(),
+            new MedjetScrapper()
             // new SuturasOnlineScrapper() — Selenium, descomente se quiser incluir
     );
 
