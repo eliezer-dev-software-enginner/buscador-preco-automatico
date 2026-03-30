@@ -29,6 +29,10 @@ public class FornecedoresScreen implements ScreenComponent {
 
     public FornecedoresScreen(ScreenContext context){
         this.context = context;
+    }
+
+    @Override
+    public void onMount() {
         loadList();
     }
 
@@ -81,6 +85,8 @@ public class FornecedoresScreen implements ScreenComponent {
     }
 
     void handleClickAdicionar(){
+        var stage = context.selfStage();
+
         UI.runOnUi(()->{
             try{
                 String urlTrimmed = siteUrl.get().trim();
@@ -103,11 +109,18 @@ public class FornecedoresScreen implements ScreenComponent {
                 Main.jsonDB.salvarFornecedor(data);
                 fornecedorModelListState.add(data);
 
+                Components.ShowPopup(stage, "Fornecedor cadastrado com sucesso");
                 EventBus.getInstance().publish(ModelCadastradoEvent.getInstance());
+                clearInputs();
             } catch (Exception e) {
-                e.printStackTrace();
+                UI.runOnUi(()-> Components.ShowAlertError(e.getMessage()));
             }
         });
+    }
+
+    void clearInputs(){
+        cnpj.set("");
+        siteUrl.set("");
     }
 
     String getBaseUrl(String fullUrl){

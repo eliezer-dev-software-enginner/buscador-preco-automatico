@@ -30,9 +30,14 @@ public class HomeScreen implements ScreenComponent {
     private ScreenContext context;
 
     // --- Formulário de busca ---
-    State<String> tituloBusca   = State.of("avental");
-    State<String> palavrasChave = State.of("descartável/manga longa/tnt/polipropileno/10 unidades");
-    State<String> codigo        = State.of("5666");
+
+    //State<String> tituloBusca   = State.of("avental");
+    State<String> tituloBusca   = State.of("");
+
+    //State<String> palavrasChave = State.of("descartável/manga longa/tnt/polipropileno/10 unidades");
+    State<String> palavrasChave = State.of("");
+    //State<String> codigo        = State.of("5666");
+    State<String> codigo = State.of("");
 
     // --- Controle de UX ---
     State<Boolean> buscando         = State.of(false);
@@ -290,5 +295,7 @@ public class HomeScreen implements ScreenComponent {
 
         fonteLabel3.set(""); urlState3.set(""); precoState3.set("0");
         imprimiuState3.set("Não"); cadastrouState3.set("Não");
+
+        precoState1.set("0");precoState2.set("0");precoState3.set("0");
     }
 }

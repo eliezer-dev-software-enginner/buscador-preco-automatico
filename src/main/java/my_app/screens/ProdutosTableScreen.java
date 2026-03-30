@@ -17,6 +17,7 @@ import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
 import megalodonte.utils.related.TextVariant;
 import my_app.*;
+import my_app.models.FornecedorModel;
 import my_app.models.ProdutoModel;
 
 import java.io.IOException;
@@ -77,7 +78,9 @@ public class ProdutosTableScreen implements ScreenComponent {
     String cnpjFromUrl(String url){
         System.out.println(url);
         try {
-            return Main.jsonDB.buscarFornecedorPorUrl(url).cnpj();
+            FornecedorModel fornecedorModel = Main.jsonDB.buscarFornecedorPorUrl(url);
+            if(fornecedorModel == null) return "Falha/CNPJ";
+            return fornecedorModel.cnpj();
         } catch (IOException e) {
             Components.ShowAlertError(e.getMessage());
             return "Falha/CNPJ";
