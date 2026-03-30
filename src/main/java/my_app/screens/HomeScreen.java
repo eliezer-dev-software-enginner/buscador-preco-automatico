@@ -151,7 +151,6 @@ public class HomeScreen implements ScreenComponent {
                             var stage = new Stage();
                             var scene = new Scene((Parent) new ProdutosTableScreen(stage).render().getJavaFxNode(), 900, 550);
 
-
                             stage.setScene(scene);
                             stage.setTitle("Produtos");
                             stage.show();

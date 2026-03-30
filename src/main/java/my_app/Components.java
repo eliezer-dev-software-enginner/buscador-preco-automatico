@@ -1,5 +1,6 @@
 package my_app;
 
+import javafx.animation.PauseTransition;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -10,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import megalodonte.ReadableState;
 import megalodonte.State;
 import megalodonte.base.components.Component;
@@ -64,15 +66,18 @@ public class Components {
 
         Label label = new Label(message);
         label.setStyle("""
-                    -fx-background-color: #333;
-                    -fx-text-fill: white;
-                    -fx-padding: 10 16;
-                    -fx-background-radius: 6;
-                """);
+                -fx-background-color: #333;
+                -fx-text-fill: white;
+                -fx-padding: 10 16;
+                -fx-background-radius: 6;
+            """);
 
         popup.getContent().add(label);
-        popup.setAutoHide(true);
         popup.show(stage);
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+        delay.setOnFinished(e -> popup.hide());
+        delay.play();
     }
 
 
