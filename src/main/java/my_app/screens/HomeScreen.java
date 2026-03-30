@@ -222,10 +222,13 @@ public class HomeScreen implements ScreenComponent {
                     preencherSlot(resultados.get(2), fonteLabel3, urlState3, precoState3);
                     buscando.set(false);
                     resultadosVisiveis.set(true);
+                    Components.ShowPopup(context.selfStage(),"Busca de preços finalizada");
+                    AudioUtils.playAudio("mixkit-correct-answer-tone-2870.wav");
                 }),
                 erro -> UI.runOnUi(() -> {
                     buscando.set(false);
                     Components.ShowAlertError("Erro na busca: " + erro);
+                    AudioUtils.playAudio("mixkit-wrong-answer-fail-notification-946.wav");
                 })
         );
     }
