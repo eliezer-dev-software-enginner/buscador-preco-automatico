@@ -33,7 +33,7 @@ public class PncpPesquisaPreco {
 
     public PncpPesquisaPreco() {
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(15))  // era 30 — reduzido para falhar rápido
+                .connectTimeout(Duration.ofSeconds(45))
                 .build();
         this.mapper = new ObjectMapper();
     }
@@ -95,7 +95,7 @@ public class PncpPesquisaPreco {
                 System.out.printf("   [%s] Pag. %d: %d contratacoes%n",
                         modalidade.name(), pagina, data.size());
 
-                Thread.sleep(300); // era 400ms
+                Thread.sleep(800); // era 400ms
 
             } catch (Exception e) {
                 System.err.printf("   Erro [%s] pag. %d: %s%n",
@@ -200,7 +200,7 @@ public class PncpPesquisaPreco {
                     }
                 }
 
-                try { Thread.sleep(200); } catch (InterruptedException ignored) {} // era 250ms
+                try { Thread.sleep(500); } catch (InterruptedException ignored) {} // era 250ms
             }
         }
 
@@ -261,16 +261,34 @@ public class PncpPesquisaPreco {
     // Helpers HTTP e JSON
     // -------------------------------------------------------------------------
     private String get(String url) throws IOException, InterruptedException {
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(15)) // era 30
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-        HttpResponse<String> resp =
-                httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() != 200) throw new IOException("HTTP " + resp.statusCode());
-        return resp.body();
+        int tentativas = 0;
+
+        while (tentativas < 3) {
+            try {
+                HttpRequest req = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .timeout(Duration.ofSeconds(40))
+                        .header("Accept", "application/json")
+                        .header("User-Agent", "Mozilla/5.0")
+                        .GET()
+                        .build();
+
+                HttpResponse<String> resp =
+                        httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+
+                if (resp.statusCode() == 200)
+                    return resp.body();
+
+                throw new IOException("HTTP " + resp.statusCode());
+
+            } catch (Exception e) {
+                tentativas++;
+                System.out.println("Retry " + tentativas + " -> " + url);
+                Thread.sleep(1500);
+            }
+        }
+
+        throw new IOException("Falha após retries");
     }
 
     private String texto(JsonNode node, String... campos) {
