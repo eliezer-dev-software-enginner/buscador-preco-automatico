@@ -106,7 +106,7 @@ public class ProdutosTableScreen implements ScreenComponent {
             final State<Boolean> imprimiu = State.of(f.getImprimiu());
             final var imprimiuStr = ComputedState.of(()-> imprimiu.get()? "Foi Impresso": "Marcar como impresso", imprimiu);
 
-            final State<Boolean> cadastrouNoSiplan = State.of(f.getImprimiu());
+            final State<Boolean> cadastrouNoSiplan = State.of(f.getCadastrouNoSiplan());
             final var cadastrouNoSiplanStr = ComputedState.of(()-> cadastrouNoSiplan.get()? "Foi cadastrado": "Marcar como cadastrado no Siplan", cadastrouNoSiplan);
 
             col.c_child(new Text("-------- Fornecedor " + (i + 1) + " --------------"))
