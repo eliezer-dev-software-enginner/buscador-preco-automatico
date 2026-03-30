@@ -60,10 +60,10 @@ public class ProdutosTableScreen implements ScreenComponent {
                 .fromData(produtosListState)
                 .header()
                 .columns()
-                .column("Código", it -> it.codigo, (double) 90)
-                .column("Titulo-Busca", it -> it.tituloBusca)
-                .column("URL", it -> it.urlEncontrada)
-                .column("Data de criação", it -> DateUtils.millisToBrazilianDateTime(it.dataCriacao))
+                .column("Código", it -> it.getCodigo(), (double) 90)
+                .column("Titulo-Busca", it -> it.getTituloBusca())
+                .column("URL", it -> it.getUrlEncontrada())
+                .column("Data de criação", it -> DateUtils.millisToBrazilianDateTime(it.getDataCriacao()))
                 .end()
                 .build()
                 .onItemDoubleClick(it-> {
@@ -85,7 +85,7 @@ public class ProdutosTableScreen implements ScreenComponent {
     Component ItemDetails(ProdutoModel model) {
         List<ProdutoModel> fornecedores;
         try {
-            fornecedores = Main.jsonDB.listarProdutosPorCodigo(model.codigo);
+            fornecedores = Main.jsonDB.listarProdutosPorCodigo(model.getCodigo());
         } catch (IOException e) {
             Components.ShowAlertError(e.getMessage());
             return new Text("Erro ao carregar fornecedores");
@@ -94,20 +94,20 @@ public class ProdutosTableScreen implements ScreenComponent {
         Column col = new Column(new ColumnProps().paddingAll(20))
                 .c_child(new Text("Detalhes do produto", new TextProps().variant(TextVariant.SUBTITLE)))
                 .c_child(new SpacerVertical(20))
-                .c_child(Components.TextWithDetails("Código: ", model.codigo))
-                .c_child(Components.TextWithDetails("Titulo: ", model.tituloBusca));
+                .c_child(Components.TextWithDetails("Código: ", model.getCodigo()))
+                .c_child(Components.TextWithDetails("Titulo: ", model.getTituloBusca()));
 
         for (int i = 0; i < fornecedores.size(); i++) {
             ProdutoModel f = fornecedores.get(i);
-            String cnpjFromUrl = cnpjFromUrl(f.urlEncontrada);
+            String cnpjFromUrl = cnpjFromUrl(f.getUrlEncontrada());
 
-            final State<Boolean> imprimiu = State.of(f.imprimiu);
+            final State<Boolean> imprimiu = State.of(f.getImprimiu());
             final var imprimiuStr = ComputedState.of(()-> imprimiu.get()? "Foi Impresso": "Marcar como impresso", imprimiu);
 
             col.c_child(new Text("-------- Fornecedor " + (i + 1) + " --------------"))
-                    .c_child(Components.TextWithDetailsAndButton("URL: ", f.urlEncontrada,
+                    .c_child(Components.TextWithDetailsAndButton("URL: ", f.getUrlEncontrada(),
                             "Abrir", ()->{
-                                Utils.abrirUrlEmBrowser(f.urlEncontrada);
+                                Utils.abrirUrlEmBrowser(f.getUrlEncontrada());
                     }))
                     .c_child(Components.TextWithDetailsAndButton("CNPJ: ", cnpjFromUrl,"Copiar", ()->{
                         var clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
@@ -116,19 +116,17 @@ public class ProdutosTableScreen implements ScreenComponent {
                         clipboard.setContent(content);
                         Components.ShowPopup(Main.stage, "CNPJ copiado para o teclado!");
                     }))
-                    .c_child(Components.TextWithDetails("Preço: ", Utils.toBRLCurrency(f.precoEncontrado)))
+                    .c_child(Components.TextWithDetails("Preço: ", Utils.toBRLCurrency(f.getPrecoEncontrado())))
                     .c_child(new Button(imprimiuStr).onClick(()->{
-                       imprimiu.set(!imprimiu.get());
-
-                       boolean newStateValue = imprimiu.get();
+                        boolean newStateValue = !imprimiu.get();
+                        imprimiu.set(newStateValue);
 
                         try {
                             Main.jsonDB.atualizarStatusDeImpressao(newStateValue, f);
                         } catch (IOException e) {
-                            UI.runOnUi(()->  Components.ShowAlertError(e.getMessage()));
+                            UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
                         }
-                    }))
-            ;
+                    }));
         }
 
         return col;

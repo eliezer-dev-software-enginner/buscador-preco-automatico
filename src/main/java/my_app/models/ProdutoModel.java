@@ -1,10 +1,94 @@
 package my_app.models;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class ProdutoModel {
-    public String codigo, tituloBusca, urlEncontrada;
-    public BigDecimal precoEncontrado;
-    public Boolean imprimiu, cadastrouNoSiplan;
-    public long dataCriacao;
+
+    private String id;
+    private String codigo;
+    private String tituloBusca;
+    private String urlEncontrada;
+    private BigDecimal precoEncontrado;
+    private Boolean imprimiu;
+    private Boolean cadastrouNoSiplan;
+    private long dataCriacao;
+
+    public ProdutoModel(String codigo,
+                        String tituloBusca,
+                        String urlEncontrada,
+                        BigDecimal precoEncontrado,
+                        boolean imprimiu,
+                        boolean cadastrouNoSiplan,
+                        Long dataCriacao,
+                        String id
+                        ) {
+
+        this.id = id;
+        this.codigo = codigo;
+        this.tituloBusca = tituloBusca;
+        this.urlEncontrada = urlEncontrada;
+        this.precoEncontrado = precoEncontrado;
+        this.imprimiu = false;
+        this.cadastrouNoSiplan = false;
+        this.dataCriacao = dataCriacao;
+        this.imprimiu = imprimiu;
+        this.cadastrouNoSiplan = cadastrouNoSiplan;
+    }
+
+    public ProdutoModel(String codigo,
+                        String tituloBusca,
+                        String urlEncontrada,
+                        BigDecimal precoEncontrado,
+                        boolean imprimiu,
+                        boolean cadastrouNoSiplan
+                        ) {
+
+        this(codigo, tituloBusca, urlEncontrada, precoEncontrado,
+                imprimiu, cadastrouNoSiplan, System.currentTimeMillis(), UUID.randomUUID().toString());
+    }
+
+    // Construtor vazio (necessário para Jackson)
+    public ProdutoModel() {}
+
+    public String getId() {
+        return id;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public String getTituloBusca() {
+        return tituloBusca;
+    }
+
+    public String getUrlEncontrada() {
+        return urlEncontrada;
+    }
+
+    public BigDecimal getPrecoEncontrado() {
+        return precoEncontrado;
+    }
+
+    public Boolean getImprimiu() {
+        return imprimiu;
+    }
+
+    public Boolean getCadastrouNoSiplan() {
+        return cadastrouNoSiplan;
+    }
+
+    public long getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setImprimiu(Boolean imprimiu) {
+        this.imprimiu = imprimiu;
+    }
+
+    public void setCadastrouNoSiplan(Boolean cadastrouNoSiplan) {
+        this.cadastrouNoSiplan = cadastrouNoSiplan;
+    }
+
 }

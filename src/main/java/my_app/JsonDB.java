@@ -77,13 +77,20 @@ public class JsonDB {
 
     public List<ProdutoModel> listarProdutosPorCodigo(String codigo) throws IOException {
         return carregarDb().produtos().stream()
-                .filter(p -> p.codigo.equals(codigo))
+                .filter(p -> p.getCodigo().equals(codigo))
                 .toList();
     }
 
     public void atualizarStatusDeImpressao(boolean newStateValue, ProdutoModel model) throws IOException {
-        model.imprimiu = newStateValue;
+        DbModel db = carregarDb();
 
-        //TODO: o ideal é comparar pelo ID
+        for (ProdutoModel p : db.produtos()) {
+            if (p.getId().equals(model.getId())) {
+                p.setImprimiu(newStateValue);
+                break;
+            }
+        }
+
+        salvarDb(db);
     }
 }

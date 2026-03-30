@@ -148,8 +148,8 @@ public class HomeScreen implements ScreenComponent {
                                         e -> System.out.println(e.getMessage())))
                        // .item("Ver Produtos", () -> router.spawnWindow("produtos", System.out::println))
                         .item("produtos", ()->{
-                            var scene = new Scene((Parent) new ProdutosTableScreen(null).render().getJavaFxNode(), 900, 550);
-                            
+                            var scene = new Scene((Parent) new ProdutosTableScreen().render().getJavaFxNode(), 900, 550);
+
                             var stage = new Stage();
                             stage.setScene(scene);
                             stage.setTitle("Produtos");
@@ -267,14 +267,15 @@ public class HomeScreen implements ScreenComponent {
     private ProdutoModel montarModel(int slot,
                                      State<String> urlState, State<String> precoState,
                                      State<String> imprimiuState, State<String> cadastrouState) {
-        ProdutoModel model = new ProdutoModel();
-        model.tituloBusca       = tituloBusca.get().trim();
-        model.codigo            = codigo.get().trim();
-        model.urlEncontrada     = urlState.get().trim();
-        model.precoEncontrado   = Utils.deCentavosParaReal(precoState.get());
-        model.imprimiu          = imprimiuState.get().equals("Sim");
-        model.cadastrouNoSiplan = cadastrouState.get().equals("Sim");
-        return model;
+
+        return new ProdutoModel(
+                codigo.get().trim(),
+                tituloBusca.get().trim(),
+                urlState.get().trim(),
+                Utils.deCentavosParaReal(precoState.get()),
+                imprimiuState.get().equals("Sim"),
+                cadastrouState.get().equals("Sim")
+        );
     }
 
     void limparInputs() {
