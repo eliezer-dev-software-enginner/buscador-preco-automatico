@@ -15,6 +15,7 @@ import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
+import megalodonte.router.v3.ScreenContext;
 import megalodonte.utils.related.TextVariant;
 import my_app.*;
 import my_app.models.FornecedorModel;
@@ -28,15 +29,19 @@ public class ProdutosTableScreen implements ScreenComponent {
     private final Stage stage;
     ListState<ProdutoModel> produtosListState = ListState.of(List.of());
 
-    public ProdutosTableScreen(Stage stage) {
-        this.stage = stage;
+    public ProdutosTableScreen(ScreenContext screenContext) {
+        this.stage = screenContext.selfStage();
+    }
+
+    @Override
+    public void onMount() {
         fetchData();
 
         EventBus.getInstance().subscribe(event -> {
-                    if (event instanceof ModelCadastradoEvent || event instanceof ModelAtualizacaoEvent) {
-                        fetchData();
-                    }
-                });
+            if (event instanceof ModelCadastradoEvent || event instanceof ModelAtualizacaoEvent) {
+                fetchData();
+            }
+        });
     }
 
     public Component render() {

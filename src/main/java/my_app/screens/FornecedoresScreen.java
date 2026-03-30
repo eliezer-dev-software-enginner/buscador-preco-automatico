@@ -52,8 +52,6 @@ public class FornecedoresScreen implements ScreenComponent {
 
         return new Column(new ColumnProps().paddingAll(20))
                 .children(
-                        new Button("Siga-me no Github").onClick(()-> Redirect.to("https://github.com/eliezer-dev-software-enginner")),
-                        new SpacerVertical(10),
                         new Text("Algumas facilidades para agilizar o cadastro de fornecedores no Siplan Web"),
                         new SpacerVertical(20),
                         new Text("CNPJ do fornecedor"),

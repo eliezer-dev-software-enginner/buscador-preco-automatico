@@ -5,6 +5,7 @@ import megalodonte.router.v3.Router;
 import my_app.screens.ConfiguracoesScreen;
 import my_app.screens.FornecedoresScreen;
 import my_app.screens.HomeScreen;
+import my_app.screens.ProdutosTableScreen;
 
 import java.util.Set;
 
@@ -20,10 +21,10 @@ public class AppRouter {
                 new Router.Route("configuracoes", ctx -> new ConfiguracoesScreen(ctx),
                         new RouteProps(900, 550, "Tela de configurações", true)),
 
-                new Router.Route("produtos", ctx -> new ConfiguracoesScreen(ctx),
+                new Router.Route("produtos", ctx -> new ProdutosTableScreen(ctx),
                         new RouteProps(900, 550, "Listagem de produtos", true))
         );
 
-        return new Router(routes, "fornecedores");
+        return new Router(routes, "home");
     }
 }
