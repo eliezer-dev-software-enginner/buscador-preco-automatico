@@ -275,7 +275,8 @@ public class HomeScreen implements ScreenComponent {
                 urlState.get().trim(),
                 Utils.deCentavosParaReal(precoState.get()),
                 imprimiuState.get().equals("Sim"),
-                cadastrouState.get().equals("Sim")
+                cadastrouState.get().equals("Sim"),
+                palavrasChave.get().trim()
         );
     }
 

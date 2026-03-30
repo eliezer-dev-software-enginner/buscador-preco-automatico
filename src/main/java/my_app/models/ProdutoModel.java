@@ -3,11 +3,13 @@ package my_app.models;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+//TODO: salvar palavras chaves
 public class ProdutoModel {
 
     private String id;
     private String codigo;
     private String tituloBusca;
+    private String palavrasChaves;
     private String urlEncontrada;
     private BigDecimal precoEncontrado;
     private Boolean imprimiu;
@@ -21,7 +23,8 @@ public class ProdutoModel {
                         boolean imprimiu,
                         boolean cadastrouNoSiplan,
                         Long dataCriacao,
-                        String id
+                        String id,
+                        String palavrasChaves
                         ) {
 
         this.id = id;
@@ -34,6 +37,7 @@ public class ProdutoModel {
         this.dataCriacao = dataCriacao;
         this.imprimiu = imprimiu;
         this.cadastrouNoSiplan = cadastrouNoSiplan;
+        this.palavrasChaves = palavrasChaves;
     }
 
     public ProdutoModel(String codigo,
@@ -41,11 +45,13 @@ public class ProdutoModel {
                         String urlEncontrada,
                         BigDecimal precoEncontrado,
                         boolean imprimiu,
-                        boolean cadastrouNoSiplan
+                        boolean cadastrouNoSiplan,
+                        String palavrasChaves
                         ) {
 
         this(codigo, tituloBusca, urlEncontrada, precoEncontrado,
-                imprimiu, cadastrouNoSiplan, System.currentTimeMillis(), UUID.randomUUID().toString());
+                imprimiu, cadastrouNoSiplan, System.currentTimeMillis(),
+                UUID.randomUUID().toString(), palavrasChaves);
     }
 
     // Construtor vazio (necessário para Jackson)
@@ -91,4 +97,7 @@ public class ProdutoModel {
         this.cadastrouNoSiplan = cadastrouNoSiplan;
     }
 
+    public String getPalavrasChaves() {
+        return palavrasChaves;
+    }
 }

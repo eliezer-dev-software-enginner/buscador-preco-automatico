@@ -93,4 +93,17 @@ public class JsonDB {
 
         salvarDb(db);
     }
+
+    public void atualizarStatusDeCadastroNoSiplan(boolean newStateValue, ProdutoModel model) throws IOException {
+        DbModel db = carregarDb();
+
+        for (ProdutoModel p : db.produtos()) {
+            if (p.getId().equals(model.getId())) {
+                p.setCadastrouNoSiplan(newStateValue);
+                break;
+            }
+        }
+
+        salvarDb(db);
+    }
 }

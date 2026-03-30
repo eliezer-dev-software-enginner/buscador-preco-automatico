@@ -32,7 +32,7 @@ public class ProdutosTableScreen implements ScreenComponent {
         fetchData();
 
         EventBus.getInstance().subscribe(event -> {
-                    if (event instanceof ModelCadastradoEvent) {
+                    if (event instanceof ModelCadastradoEvent || event instanceof ModelAtualizacaoEvent) {
                         fetchData();
                     }
                 });
@@ -106,6 +106,9 @@ public class ProdutosTableScreen implements ScreenComponent {
             final State<Boolean> imprimiu = State.of(f.getImprimiu());
             final var imprimiuStr = ComputedState.of(()-> imprimiu.get()? "Foi Impresso": "Marcar como impresso", imprimiu);
 
+            final State<Boolean> cadastrouNoSiplan = State.of(f.getImprimiu());
+            final var cadastrouNoSiplanStr = ComputedState.of(()-> cadastrouNoSiplan.get()? "Foi cadastrado": "Marcar como cadastrado no Siplan", cadastrouNoSiplan);
+
             col.c_child(new Text("-------- Fornecedor " + (i + 1) + " --------------"))
                     .c_child(Components.TextWithDetailsAndButton("URL: ", f.getUrlEncontrada(),
                             "Abrir", ()->{
@@ -131,6 +134,18 @@ public class ProdutosTableScreen implements ScreenComponent {
 
                         try {
                             Main.jsonDB.atualizarStatusDeImpressao(newStateValue, f);
+                            EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
+                        } catch (IOException e) {
+                            UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+                        }
+                    }))
+                    .c_child(new Button(cadastrouNoSiplanStr).onClick(()->{
+                        boolean newStateValue = !cadastrouNoSiplan.get();
+                        cadastrouNoSiplan.set(newStateValue);
+
+                        try {
+                            Main.jsonDB.atualizarStatusDeCadastroNoSiplan(newStateValue, f);
+                            EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
                         } catch (IOException e) {
                             UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
                         }
