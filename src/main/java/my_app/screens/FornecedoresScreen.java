@@ -1,4 +1,4 @@
-package my_app;
+package my_app.screens;
 
 import megalodonte.ForEachState;
 import megalodonte.ListState;
@@ -15,6 +15,7 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
 import megalodonte.router.v3.ScreenContext;
+import my_app.*;
 import my_app.models.FornecedorModel;
 
 import java.util.List;

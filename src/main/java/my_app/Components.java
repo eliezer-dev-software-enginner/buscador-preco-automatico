@@ -32,16 +32,15 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static my_app.Utils.formatPhone;
 
 public class Components {
 
-    public static void ShowModal(Component ui, int height){
+    public static void ShowModal(Component ui,int width, int height){
         Stage stage = new Stage();
-        stage.setScene(new Scene((Parent) ui.getJavaFxNode(), 700, height));
+        stage.setScene(new Scene((Parent) ui.getJavaFxNode(), width, height));
         stage.setTitle("Detalhes");
         stage.initModality(Modality.WINDOW_MODAL);
        // stage.initOwner(context.javafxStage());
@@ -147,6 +146,10 @@ public class Components {
                                 props.borderWidth(1).borderColor("black")
                         )
                 );
+    }
+
+    public static Component InputColumn(String label, ReadableState<String> inputState) {
+        return InputColumn(label, inputState, "");
     }
 
     private final static SelectProps selectProps = new SelectProps()

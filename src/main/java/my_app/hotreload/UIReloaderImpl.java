@@ -46,7 +46,7 @@ public class UIReloaderImpl implements Reloader {
             Object screenInstance = screenClass.getDeclaredConstructor().newInstance();
             Object component = screenClass.getMethod("render").invoke(screenInstance);
 
-            context.getClass().getMethod("useView", Class.forName("megalodonte.base.ComponentInterface"))
+            context.getClass().getMethod("useView", Class.forName("megalodonte.base.components.ComponentInterface"))
                     .invoke(context, component);
 
             System.out.println("[UIReloader] UI reloaded successfully.");

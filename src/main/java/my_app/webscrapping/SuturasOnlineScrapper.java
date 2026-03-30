@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -12,6 +13,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SuturasOnlineScrapper extends WebscrappingBase {
 
@@ -20,11 +23,11 @@ public class SuturasOnlineScrapper extends WebscrappingBase {
     }
 
     @Override
-    public ResultSearch searchProduct(String search) {
+    public List<ResultSearch> searchProduct(String search, int limit) {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");        // roda sem abrir janela
+        options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
 
@@ -36,37 +39,32 @@ public class SuturasOnlineScrapper extends WebscrappingBase {
 
             driver.get(url);
 
-            // aguarda os produtos aparecerem na página
             new WebDriverWait(driver, Duration.ofSeconds(15))
                     .until(ExpectedConditions.presenceOfElementLocated(
                             By.cssSelector("div.product")));
 
-            // pega o HTML renderizado e passa pro Jsoup
             Document doc = Jsoup.parse(driver.getPageSource());
+            Elements produtos = doc.select("div.product");
 
-            Element produto = doc.selectFirst("div.product");
-            if (produto == null) {
-                throw new RuntimeException("Nenhum produto encontrado para: " + search);
+            List<ResultSearch> results = new ArrayList<>();
+            for (Element produto : produtos) {
+                if (results.size() >= limit) break;
+
+                String nome = produto.selectFirst("div.product-name") != null
+                        ? produto.selectFirst("div.product-name").text() : "";
+                String preco = produto.selectFirst("span.price-card") != null
+                        ? produto.selectFirst("span.price-card").text() : "";
+                String link = produto.selectFirst("a.space-image") != null
+                        ? "https:" + produto.selectFirst("a.space-image").attr("href") : "";
+
+                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
             }
-
-            String nome = produto.selectFirst("div.product-name") != null
-                    ? produto.selectFirst("div.product-name").text()
-                    : "";
-
-            String preco = produto.selectFirst("span.price-card") != null
-                    ? produto.selectFirst("span.price-card").text()
-                    : "";
-
-            String link = produto.selectFirst("a.space-image") != null
-                    ? "https:" + produto.selectFirst("a.space-image").attr("href")
-                    : "";
-
-            return new ResultSearch(nome, preco, link);
+            return results;
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao buscar produtos: " + e.getMessage());
+            return List.of();
         } finally {
-            driver.quit(); // sempre fecha o browser
+            driver.quit();
         }
     }
 }

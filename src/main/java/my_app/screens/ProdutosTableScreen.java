@@ -1,4 +1,4 @@
-package my_app;
+package my_app.screens;
 
 import javafx.scene.input.ClipboardContent;
 import megalodonte.ComputedState;
@@ -15,6 +15,7 @@ import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v3.Router;
 import megalodonte.utils.related.TextVariant;
+import my_app.*;
 import my_app.models.ProdutoModel;
 
 import java.io.IOException;
@@ -69,12 +70,13 @@ public class ProdutosTableScreen {
                 .end()
                 .build()
                 .onItemDoubleClick(it-> {
-                    Components.ShowModal( ItemDetails(it), 550);
+                    Components.ShowModal( ItemDetails(it), 800,550);
                 });
     }
 
 
     String cnpjFromUrl(String url){
+        System.out.println(url);
         try {
             return Main.jsonDB.buscarFornecedorPorUrl(url).cnpj();
         } catch (IOException e) {

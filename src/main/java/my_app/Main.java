@@ -7,6 +7,9 @@ import megalodonte.application.MegalodonteApp;
 import megalodonte.router.v3.RouteProps;
 import megalodonte.router.v3.Router;
 import my_app.hotreload.HotReload;
+import my_app.screens.ConfiguracoesScreen;
+import my_app.screens.FornecedoresScreen;
+import my_app.screens.HomeScreen;
 
 import java.util.Set;
 
@@ -17,9 +20,16 @@ public class Main {
     public static JsonDB jsonDB = new JsonDB();
     public static Stage stage;
 
-    public static void main() {
+    static void main() {
         MegalodonteApp.run(context -> {
-            var router = getRouter(context);
+
+            final var stage = context.javafxStage();
+            Main.stage = stage;
+            stage.setTitle("licita-facil por Eliezer Dev");
+            stage.setWidth(900);
+            stage.setHeight(650);
+
+            var router = getRouter();
 
             context.useRouter(router);
             context.useView(router.entrypoint().view());
@@ -36,19 +46,18 @@ public class Main {
         });
     }
 
-    private static Router getRouter(Context context) {
-        final var stage = context.javafxStage();
-        Main.stage = stage;
-        stage.setTitle("licita-facil por Eliezer Dev");
-        stage.setWidth(900);
-        stage.setHeight(650);
+    private static Router getRouter() {
 
         var routes = Set.of(
                 new Router.Route("home", ctx -> new HomeScreen(ctx),
                         new RouteProps(900, 550,null, false)),
-                //ok
+
                 new Router.Route("fornecedores",ctx-> new FornecedoresScreen(ctx),
-                        new RouteProps(900, 550, "Fornecedores", true))
+                        new RouteProps(900, 550, "Fornecedores", true)),
+                new Router.Route("configuracoes",ctx-> new ConfiguracoesScreen(ctx),
+                        new RouteProps(900, 550, "Tela de configurações", true)),
+                new Router.Route("produtos",ctx-> new ConfiguracoesScreen(ctx),
+                        new RouteProps(900, 550, "Listagem de produtos", true))
         );
 
         return new Router(routes, "home");
@@ -62,7 +71,7 @@ public class Main {
                 .classesPath("build/classes/java/main")
                 .resourcesPath("src/main/resources")
                 .implementationClassName("my_app.hotreload.UIReloaderImpl")
-                .screenClassName("my_app.HomeScreen")
+                .screenClassName("my_app.screens.HomeScreen")
                 .reloadContext(context)
                 .classesToExclude(Set.of(
                     "my_app.Main",

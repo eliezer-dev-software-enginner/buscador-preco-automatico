@@ -14,41 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
 
-/**
- * Pesquisa de Preços Praticados no PNCP — filtrando por UF=MG
- *
- * Dependências (Maven):
- *   <dependency>
- *       <groupId>com.fasterxml.jackson.core</groupId>
- *       <artifactId>jackson-databind</artifactId>
- *       <version>2.17.0</version>
- *   </dependency>
- *
- * Ou Gradle:
- *   implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
- *
- * Requer Java 11+
- */
 public class PncpPesquisaPreco {
 
     private static final String BASE_CONSULTA = "https://pncp.gov.br/api/consulta/v1";
     private static final String BASE_PNCP     = "https://pncp.gov.br/api/pncp/v1";
 
-    /**
-     * Códigos de modalidade do PNCP.
-     * O parâmetro codigoModalidadeContratacao é OBRIGATÓRIO na API —
-     * sem ele a API retorna HTTP 400.
-     */
     public enum Modalidade {
-        LEILAO(1),
-        DIALOGO_COMPETITIVO(2),
-        CONCURSO(3),
-        CONCORRENCIA(4),
-        CONCORRENCIA_INTERNACIONAL(5),
-        PREGAO_ELETRONICO(6),   // mais comum para compras municipais
-        PREGAO_PRESENCIAL(7),
-        DISPENSA(8),
-        INEXIGIBILIDADE(9);
+        LEILAO(1), DIALOGO_COMPETITIVO(2), CONCURSO(3), CONCORRENCIA(4),
+        CONCORRENCIA_INTERNACIONAL(5), PREGAO_ELETRONICO(6), PREGAO_PRESENCIAL(7),
+        DISPENSA(8), INEXIGIBILIDADE(9);
 
         public final int codigo;
         Modalidade(int codigo) { this.codigo = codigo; }
@@ -59,27 +33,18 @@ public class PncpPesquisaPreco {
 
     public PncpPesquisaPreco() {
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(30))
+                .connectTimeout(Duration.ofSeconds(15))  // era 30 — reduzido para falhar rápido
                 .build();
         this.mapper = new ObjectMapper();
     }
 
     // -------------------------------------------------------------------------
-    // Modelo de item encontrado
+    // Modelo
     // -------------------------------------------------------------------------
     public static class ItemEncontrado {
-        public String municipio;
-        public String cnpjOrgao;
-        public String orgaoNome;
+        public String municipio, cnpjOrgao, orgaoNome, ano, sequencial, numeroItem, descricao, unidade;
         public int    modalidade;
-        public String ano;
-        public String sequencial;
-        public String numeroItem;
-        public String descricao;
-        public String unidade;
-        public Double quantidade;
-        public Double valorUnitario;
-        public Double valorTotal;
+        public Double quantidade, valorUnitario, valorTotal;
 
         @Override
         public String toString() {
@@ -101,13 +66,11 @@ public class PncpPesquisaPreco {
     }
 
     // -------------------------------------------------------------------------
-    // Etapa 1 — Buscar contratações em MG por modalidade
+    // Etapa 1
     // -------------------------------------------------------------------------
     public List<JsonNode> buscarContratacoesMG(
-            String dataInicial,
-            String dataFinal,
-            Modalidade modalidade,
-            int totalPaginas) {
+            String dataInicial, String dataFinal,
+            Modalidade modalidade, int totalPaginas) {
 
         List<JsonNode> contratacoes = new ArrayList<>();
 
@@ -125,18 +88,14 @@ public class PncpPesquisaPreco {
                 JsonNode root = mapper.readTree(json);
                 JsonNode data = root.get("data");
 
-                if (data == null || !data.isArray() || data.isEmpty()) {
-                    break;
-                }
+                if (data == null || !data.isArray() || data.isEmpty()) break;
 
-                for (JsonNode node : data) {
-                    contratacoes.add(node);
-                }
+                for (JsonNode node : data) contratacoes.add(node);
 
                 System.out.printf("   [%s] Pag. %d: %d contratacoes%n",
                         modalidade.name(), pagina, data.size());
 
-                Thread.sleep(400);
+                Thread.sleep(300); // era 400ms
 
             } catch (Exception e) {
                 System.err.printf("   Erro [%s] pag. %d: %s%n",
@@ -149,7 +108,7 @@ public class PncpPesquisaPreco {
     }
 
     // -------------------------------------------------------------------------
-    // Etapa 2 — Buscar itens de uma contratação
+    // Etapa 2
     // -------------------------------------------------------------------------
     public List<JsonNode> buscarItensContratacao(String cnpj, String ano, String sequencial) {
         String cnpjLimpo = cnpj.replaceAll("[.\\-/]", "");
@@ -159,21 +118,15 @@ public class PncpPesquisaPreco {
             String json = get(url);
             JsonNode root = mapper.readTree(json);
             List<JsonNode> itens = new ArrayList<>();
-            if (root.isArray()) {
-                root.forEach(itens::add);
-            } else if (root.has("data") && root.get("data").isArray()) {
+            if (root.isArray()) root.forEach(itens::add);
+            else if (root.has("data") && root.get("data").isArray())
                 root.get("data").forEach(itens::add);
-            }
             return itens;
         } catch (Exception e) {
             return List.of();
         }
     }
 
-    /**
-     * Busca o resultado (vencedor/preco homologado) de um item especifico.
-     * Este e o PRECO PRATICADO real — nao apenas o estimado.
-     */
     public List<JsonNode> buscarResultadoItem(
             String cnpj, String ano, String sequencial, String numeroItem) {
         String cnpjLimpo = cnpj.replaceAll("[.\\-/]", "");
@@ -184,11 +137,9 @@ public class PncpPesquisaPreco {
             String json = get(url);
             JsonNode root = mapper.readTree(json);
             List<JsonNode> resultados = new ArrayList<>();
-            if (root.isArray()) {
-                root.forEach(resultados::add);
-            } else if (root.has("data") && root.get("data").isArray()) {
+            if (root.isArray()) root.forEach(resultados::add);
+            else if (root.has("data") && root.get("data").isArray())
                 root.get("data").forEach(resultados::add);
-            }
             return resultados;
         } catch (Exception e) {
             return List.of();
@@ -196,28 +147,25 @@ public class PncpPesquisaPreco {
     }
 
     // -------------------------------------------------------------------------
-    // Pesquisa principal
+    // pesquisarPrecoItem — overload com maxPaginas para o CotacaoService controlar
     // -------------------------------------------------------------------------
+
+    /**
+     * Versão usada pelo CotacaoService — recebe maxPaginas explicitamente.
+     * Use maxPaginas=2 para buscas rápidas na UI; maxPaginas=5+ para pesquisas completas.
+     */
     public List<ItemEncontrado> pesquisarPrecoItem(
             String descricaoBusca,
             String dataInicial,
             String dataFinal,
+            int maxPaginas,
             Modalidade... modalidades) {
-
-        System.out.printf("Buscando '%s' em MG (%s a %s)...%n",
-                descricaoBusca, dataInicial, dataFinal);
 
         List<ItemEncontrado> resultados = new ArrayList<>();
 
         for (Modalidade modalidade : modalidades) {
-            System.out.printf("%nModalidade: %s (codigo %d)%n",
-                    modalidade.name(), modalidade.codigo);
-
             List<JsonNode> contratacoes =
-                    buscarContratacoesMG(dataInicial, dataFinal, modalidade, 5);
-
-            System.out.printf("   %d contratacoes. Filtrando itens...%n",
-                    contratacoes.size());
+                    buscarContratacoesMG(dataInicial, dataFinal, modalidade, maxPaginas);
 
             for (JsonNode c : contratacoes) {
                 String cnpj       = texto(c, "orgaoEntidade", "cnpj");
@@ -235,8 +183,6 @@ public class PncpPesquisaPreco {
                     if (descricao == null) continue;
 
                     if (descricao.toLowerCase().contains(descricaoBusca.toLowerCase())) {
-                        String numeroItem = textoPlano(item, "numeroItem");
-
                         ItemEncontrado ie = new ItemEncontrado();
                         ie.municipio     = municipio;
                         ie.cnpjOrgao     = cnpj;
@@ -244,43 +190,44 @@ public class PncpPesquisaPreco {
                         ie.modalidade    = modalidade.codigo;
                         ie.ano           = ano;
                         ie.sequencial    = sequencial;
-                        ie.numeroItem    = numeroItem;
+                        ie.numeroItem    = textoPlano(item, "numeroItem");
                         ie.descricao     = descricao;
                         ie.unidade       = textoPlano(item, "unidadeMedida");
                         ie.quantidade    = doubleNode(item, "quantidade");
                         ie.valorUnitario = doubleNode(item, "valorUnitarioEstimado");
                         ie.valorTotal    = doubleNode(item, "valorTotal");
-
-                        // Para buscar o PRECO HOMOLOGADO (vencedor real),
-                        // descomente o bloco abaixo:
-                        // List<JsonNode> res = buscarResultadoItem(cnpj, ano, sequencial, numeroItem);
-                        // if (!res.isEmpty()) {
-                        //     ie.valorUnitario = doubleNode(res.get(0), "valorUnitario");
-                        // }
-
                         resultados.add(ie);
                     }
                 }
 
-                try { Thread.sleep(250); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(200); } catch (InterruptedException ignored) {} // era 250ms
             }
         }
 
         return resultados;
     }
 
+    /**
+     * Versão original mantida para compatibilidade (usa 5 páginas por padrão).
+     */
+    public List<ItemEncontrado> pesquisarPrecoItem(
+            String descricaoBusca,
+            String dataInicial,
+            String dataFinal,
+            Modalidade... modalidades) {
+        return pesquisarPrecoItem(descricaoBusca, dataInicial, dataFinal, 5, modalidades);
+    }
+
     // -------------------------------------------------------------------------
-    // Relatorio e exportacao CSV
+    // Relatório e CSV (mantidos do original)
     // -------------------------------------------------------------------------
     public void exibirRelatorio(List<ItemEncontrado> resultados, String descricaoBusca) {
         if (resultados.isEmpty()) {
             System.out.printf("%nNenhum item com '%s' encontrado.%n", descricaoBusca);
             return;
         }
-
         System.out.printf("%n%d ocorrencias de '%s' encontradas!%n%n",
                 resultados.size(), descricaoBusca);
-
         System.out.printf("%-25s | %-55s | %12s | %s%n",
                 "Municipio", "Descricao", "Vlr Unitario", "Unidade");
         System.out.println("-".repeat(105));
@@ -288,14 +235,12 @@ public class PncpPesquisaPreco {
 
         List<Double> valores = resultados.stream()
                 .filter(i -> i.valorUnitario != null && i.valorUnitario > 0)
-                .map(i -> i.valorUnitario)
-                .toList();
+                .map(i -> i.valorUnitario).toList();
 
         if (!valores.isEmpty()) {
             OptionalDouble media = valores.stream().mapToDouble(Double::doubleValue).average();
             double min = valores.stream().mapToDouble(Double::doubleValue).min().orElse(0);
             double max = valores.stream().mapToDouble(Double::doubleValue).max().orElse(0);
-
             System.out.println("\nEstatisticas de preco unitario:");
             System.out.printf("   Media:   R$ %,.2f%n", media.orElse(0));
             System.out.printf("   Minimo:  R$ %,.2f%n", min);
@@ -307,9 +252,7 @@ public class PncpPesquisaPreco {
         try (FileWriter fw = new FileWriter(arquivo)) {
             fw.write("municipio,cnpj_orgao,orgao_nome,modalidade,ano,sequencial," +
                     "item_numero,descricao,unidade,qtd,valor_unitario,valor_total\n");
-            for (ItemEncontrado ie : resultados) {
-                fw.write(ie.toCsvLine() + "\n");
-            }
+            for (ItemEncontrado ie : resultados) fw.write(ie.toCsvLine() + "\n");
         }
         System.out.println("\nExportado: " + arquivo);
     }
@@ -320,15 +263,13 @@ public class PncpPesquisaPreco {
     private String get(String url) throws IOException, InterruptedException {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(15)) // era 30
                 .header("Accept", "application/json")
                 .GET()
                 .build();
         HttpResponse<String> resp =
                 httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() != 200) {
-            throw new IOException("HTTP " + resp.statusCode());
-        }
+        if (resp.statusCode() != 200) throw new IOException("HTTP " + resp.statusCode());
         return resp.body();
     }
 
@@ -352,26 +293,19 @@ public class PncpPesquisaPreco {
     }
 
     // -------------------------------------------------------------------------
-    // Main — configure aqui sua busca
+    // Main — uso standalone (mantido do original)
     // -------------------------------------------------------------------------
     public static void main(String[] args) throws Exception {
         PncpPesquisaPreco pesquisa = new PncpPesquisaPreco();
-
-        String descricao   = "papel a4";   // <- palavra-chave do item
-        String dataInicial = "20250101";   // <- formato YYYYMMDD
+        String descricao   = "papel a4";
+        String dataInicial = "20250101";
         String dataFinal   = "20250329";
 
-        // Pregao Eletronico (6) e Dispensa (8) são as mais comuns em municipios.
-        // Para varrer tudo: Modalidade.values()
         List<ItemEncontrado> resultados = pesquisa.pesquisarPrecoItem(
                 descricao, dataInicial, dataFinal,
-                Modalidade.PREGAO_ELETRONICO,
-                Modalidade.DISPENSA
-        );
+                Modalidade.PREGAO_ELETRONICO, Modalidade.DISPENSA);
 
         pesquisa.exibirRelatorio(resultados, descricao);
-
-        String nomeArquivo = "precos_" + descricao.replace(" ", "_") + "_mg.csv";
-        pesquisa.exportarCsv(resultados, nomeArquivo);
+        pesquisa.exportarCsv(resultados, "precos_" + descricao.replace(" ", "_") + "_mg.csv");
     }
 }

@@ -4,6 +4,7 @@ import my_app.webscrapping.*;
 
 public class MainTeste {
     public static void main(String[] args) {
+       /*
         System.out.println("=== LoganMed ===");
         var loganMed = new LoganMedScrapper();
         var r1 = loganMed.searchProduct("gel silicone 20g");
@@ -38,5 +39,7 @@ public class MainTeste {
         System.out.println("Produto : " + r5.nomeProdutoEncontrado());
         System.out.println("Preço   : " + r5.preco());
         System.out.println("Link    : " + r5.link());
+
+        */
     }
 }
