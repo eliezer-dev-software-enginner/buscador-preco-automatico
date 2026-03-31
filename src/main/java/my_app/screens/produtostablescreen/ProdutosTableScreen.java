@@ -159,7 +159,7 @@ public class ProdutosTableScreen implements ScreenComponent {
 
         UI.runOnUi(()-> Components.ShowPopup(stage, "CNPJ copiado: " + cnpj));
 
-
+        Components.ShowPopup(stage, "CNPJ copiado: " + cnpj);
 
         System.out.println("CNPJ copiado: " + cnpj);
     }
