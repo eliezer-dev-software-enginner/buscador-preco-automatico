@@ -2,6 +2,7 @@ package my_app.screens.produtostablescreen;
 
 import javafx.stage.Stage;
 import megalodonte.ListState;
+import megalodonte.State;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
@@ -20,6 +21,8 @@ public class ProdutosTableScreen implements ScreenComponent {
 
     private final Stage stage;
     private final ListState<ProdutoModel> produtosListState = ListState.of(List.of());
+    private final State<String> searchState = State.of(""); // <- novo
+    private final ListState<ProdutoModel> filteredListState = ListState.of(List.of()); // <- novo
 
     public ProdutosTableScreen(ScreenContext screenContext) {
         this.stage = screenContext.selfStage();
@@ -29,20 +32,45 @@ public class ProdutosTableScreen implements ScreenComponent {
     public void onMount() {
         fetchData();
 
+        produtosListState.subscribe(ignored -> applyFilter());
+        searchState.subscribe(ignored -> applyFilter());
+
         EventBus.getInstance().subscribe(event -> {
             if (event instanceof ModelCadastradoEvent || event instanceof ModelAtualizacaoEvent) {
                 fetchData();
             }
         });
     }
-
     public Component render() {
         return new Column(new ColumnProps().paddingAll(20))
                 .children(
+                        searchField(),
                         table(),
                         new Text("Criado por Eliezer - 2026", new TextProps().fontSize(12))
                 );
     }
+
+    private void applyFilter() {
+        String query = searchState.get().toLowerCase().trim();
+        List<ProdutoModel> all = produtosListState.get();
+
+        List<ProdutoModel> filtered = query.isEmpty()
+                ? all
+                : all.stream()
+                .filter(p ->
+                        contains(p.getCodigo(), query) ||
+                                contains(p.getTituloBusca(), query) ||
+                                contains(p.getUrlEncontrada(), query)
+                )
+                .toList();
+
+        UI.runOnUi(() -> filteredListState.set(filtered));
+    }
+
+    private boolean contains(Object value, String query) {
+        return value != null && value.toString().toLowerCase().contains(query);
+    }
+
 
 
     void fetchData(){
@@ -54,10 +82,13 @@ public class ProdutosTableScreen implements ScreenComponent {
         } catch (Exception e) {e.printStackTrace();}
     }
 
+    private Component searchField() {
+        return Components.InputColumn("Buscar por código, título ou URL...", searchState);
+    }
 
     public Component table() {
         return new SimpleTable<ProdutoModel>()
-                .fromData(produtosListState)
+                .fromData(filteredListState)
                 .header()
                 .columns()
                 .column("Código", it -> it.getCodigo(), (double) 90)
