@@ -34,8 +34,10 @@ public class CotacaoService {
             new DrogariaEFarmaScrapper(),
             new EspecifarmaScrapper(),
             new MagazineMedicaScrapper(),
-            new MedjetScrapper()
-            // new SuturasOnlineScrapper() — Selenium, descomente se quiser incluir
+            new RhosseScrapper(),
+            new DrogaraiaScrapper(),
+            new MedjetScrapper(),
+            new SuturasOnlineScrapper()
     );
 
     // -------------------------------------------------------------------------

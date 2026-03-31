@@ -4,8 +4,8 @@ import megalodonte.router.v3.RouteProps;
 import megalodonte.router.v3.Router;
 import my_app.screens.ConfiguracoesScreen;
 import my_app.screens.FornecedoresScreen;
-import my_app.screens.HomeScreen;
-import my_app.screens.ProdutosTableScreen;
+import my_app.screens.homescreen.HomeScreen;
+import my_app.screens.produtostablescreen.ProdutosTableScreen;
 
 import java.util.Set;
 
@@ -25,6 +25,6 @@ public class AppRouter {
                         new RouteProps(900, 550, "Listagem de produtos", true))
         );
 
-        return new Router(routes, "home");
+        return new Router(routes, "produtos");
     }
 }

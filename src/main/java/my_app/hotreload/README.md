@@ -154,7 +154,7 @@ if (devMode) {
         .classesPath("build/classes/java/main")
         .resourcesPath("src/main/resources")
         .implementationClassName("my_app.hotreload.UIReloaderImpl")
-        .screenClassName("my_app.screens.HomeScreen")
+        .screenClassName("my_app.screens.homescreen.HomeScreen")
         .reloadContext(context)
         .classesToExclude(Set.of(
             "my_app.Main",

@@ -1,7 +1,5 @@
-package my_app.screens;
+package my_app.screens.homescreen;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import megalodonte.*;
 import megalodonte.base.Redirect;
@@ -23,7 +21,6 @@ import my_app.webscrapping.CotacaoService;
 import my_app.webscrapping.CotacaoService.ResultadoCotacao;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class HomeScreen implements ScreenComponent {
 
@@ -32,11 +29,12 @@ public class HomeScreen implements ScreenComponent {
     // --- Formulário de busca ---
 
     //State<String> tituloBusca   = State.of("avental");
-    State<String> tituloBusca   = State.of("");
-
     //State<String> palavrasChave = State.of("descartável/manga longa/tnt/polipropileno/10 unidades");
-    State<String> palavrasChave = State.of("");
     //State<String> codigo        = State.of("5666");
+
+
+    State<String> tituloBusca   = State.of("");
+    State<String> palavrasChave = State.of("");
     State<String> codigo = State.of("");
 
     // --- Controle de UX ---
@@ -91,7 +89,7 @@ public class HomeScreen implements ScreenComponent {
                                 new Text("Algumas facilidades para agilizar o cadastro de fornecedores no Siplan"),
                                 new SpacerVertical(20),
 
-                                topForm(),
+                                HomeScreenComponents.topForm(codigo, tituloBusca, this::handleLimparInputs, this::buscar, this::salvar),
 
                                 new SpacerVertical(10),
                                 Components.InputColumn("Palavras-chave (separadas por /)", palavrasChave),
@@ -151,59 +149,19 @@ public class HomeScreen implements ScreenComponent {
                         .item("Fornecedores", () ->
                                 router.spawnWindow("fornecedores",
                                         e -> System.out.println(e.getMessage())))
-                       // .item("Ver Produtos", () -> router.spawnWindow("produtos", System.out::println))
-                        .item("produtos", ()->{
-//                            var stage = new Stage();
-//                            var scene = new Scene((Parent) new ProdutosTableScreen(stage).render().getJavaFxNode(), 900, 550);
-//
-//                            stage.setScene(scene);
-//                            stage.setTitle("Produtos");
-//                            stage.show();
-
-                            router.spawnWindow("produtos",
-                                    e -> System.out.println(e.getMessage()));
-                        })
+                        .item("Produtos", ()-> router.spawnWindow("produtos",
+                                e -> System.out.println(e.getMessage())))
                         .item("Abrir siplan-web", ()-> Utils.abrirUrlEmBrowser("https://pm-braspires.siplanweb.com.br/siplan-v2/siplan"))
                 );
     }
 
-    private Row topForm() {
-        return new Row().children(
-                new Column().children(
-                        new Text("Código"),
-                        new Input(codigo, new InputProps().placeHolder("").borderColor("black"))
-                ),
-                new SpacerHorizontal(20),
-                new Column().children(
-                        new Text("Título da busca"),
-                        new Input(tituloBusca,
-                                new InputProps().placeHolder("Ex: avental").borderColor("black"))
-                ),
-                new SpacerHorizontal(20),
-                new Column().children(
-                        new SpacerVertical(13),
-                        new Button("Buscar", new ButtonProps().height(30)).onClick(this::buscar)
-                ),
-                new SpacerHorizontal(20),
-                new Column().children(
-                        new SpacerVertical(13),
-                        new Button("Limpar", new ButtonProps().height(30)).onClick(() -> {
-                            limparInputs();
-                            resultadosVisiveis.set(false);
-                        })
-                ),
-                new SpacerHorizontal(20),
-                new Column().children(
-                        new SpacerVertical(13),
-                        new Button("Salvar", new ButtonProps().height(30)).onClick(this::salvar)
-                )
-        );
-    }
 
     // =========================================================================
     // Ações
     // =========================================================================
     void buscar() {
+        precoState1.set("0");precoState2.set("0");precoState3.set("0");
+
         if (tituloBusca.get().trim().isEmpty()) {
             Components.ShowAlertError("Título da busca está vazio!");
             return;
@@ -257,6 +215,23 @@ public class HomeScreen implements ScreenComponent {
 
     void salvar() {
         Stage stage = context.selfStage();
+
+        if(codigo.get().trim().isEmpty()){
+            Components.ShowAlertError("Preencha o código!");
+            return;
+        }
+
+        if(tituloBusca.get().trim().isEmpty()){
+            Components.ShowAlertError("Preencha o título de busca!");
+            return;
+        }
+
+        if(inputsAreInvalid(urlState1, precoState1) || inputsAreInvalid(urlState2, precoState2) ||
+        inputsAreInvalid(urlState3, precoState3) ){
+            Components.ShowAlertError("Confira os dados e tente de novo! (preço, url)");
+            return;
+        }
+
         UI.runOnUi(() -> {
             try {
                 Main.jsonDB.salvarProduto(montarModel(1, urlState1, precoState1, imprimiuState1, cadastrouState1));
@@ -276,6 +251,12 @@ public class HomeScreen implements ScreenComponent {
         });
     }
 
+    private boolean inputsAreInvalid(State<String> urlState, State<String> precoState) {
+        String precoValue = precoState.get().trim();
+        return urlState.get().trim().isEmpty() || precoValue.isEmpty() || precoValue.equals("0");
+    }
+
+
     private ProdutoModel montarModel(int slot,
                                      State<String> urlState, State<String> precoState,
                                      State<String> imprimiuState, State<String> cadastrouState) {
@@ -289,6 +270,11 @@ public class HomeScreen implements ScreenComponent {
                 cadastrouState.get().equals("Sim"),
                 palavrasChave.get().trim()
         );
+    }
+
+    void handleLimparInputs() {
+            limparInputs();
+            resultadosVisiveis.set(false);
     }
 
     void limparInputs() {
