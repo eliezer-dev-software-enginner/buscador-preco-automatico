@@ -1,6 +1,12 @@
 package my_app.screens.produtostablescreen;
 
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import megalodonte.ComputedState;
 import megalodonte.State;
@@ -21,10 +27,12 @@ import my_app.models.ProdutoModel;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class ProdutoComponents {
 
     public static Component ItemDetails(ProdutoModel model, Stage stage) {
+
         List<ProdutoModel> fornecedores;
         try {
             fornecedores = Main.jsonDB.listarProdutosPorCodigo(model.getCodigo());
@@ -111,7 +119,29 @@ public class ProdutoComponents {
                 );
     }
 
-    private static String cnpjFromUrl(String url){
+
+    public static void ShowModal(
+            Component ui,
+            int width,
+            int height,
+            Map<KeyCombination, Runnable> shortcuts){
+
+        Stage stage = new Stage();
+
+        var scene = new Scene((Parent) ui.getJavaFxNode(), width, height);
+        stage.setScene(scene);
+
+        // registra todos atalhos
+        for (var entry : shortcuts.entrySet()) {
+            scene.getAccelerators().put(entry.getKey(), entry.getValue());
+        }
+
+        stage.setTitle("Detalhes");
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.show();
+    }
+
+    public static String cnpjFromUrl(String url){
         System.out.println(url);
         try {
             FornecedorModel fornecedorModel = Main.jsonDB.buscarFornecedorPorUrl(url);

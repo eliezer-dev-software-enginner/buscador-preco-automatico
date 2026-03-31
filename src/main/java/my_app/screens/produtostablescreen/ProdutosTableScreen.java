@@ -1,5 +1,6 @@
 package my_app.screens.produtostablescreen;
 
+import javafx.scene.input.*;
 import javafx.stage.Stage;
 import megalodonte.ListState;
 import megalodonte.State;
@@ -15,7 +16,12 @@ import megalodonte.router.v3.ScreenContext;
 import my_app.*;
 import my_app.models.ProdutoModel;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static my_app.screens.produtostablescreen.ProdutoComponents.cnpjFromUrl;
 
 public class ProdutosTableScreen implements ScreenComponent {
 
@@ -40,6 +46,7 @@ public class ProdutosTableScreen implements ScreenComponent {
                 fetchData();
             }
         });
+
     }
     public Component render() {
         return new Column(new ColumnProps().paddingAll(20))
@@ -97,9 +104,63 @@ public class ProdutosTableScreen implements ScreenComponent {
                 .column("Data de criação", it -> DateUtils.millisToBrazilianDateTime(it.getDataCriacao()))
                 .end()
                 .build()
-                .onItemDoubleClick(it-> {
-                    Components.ShowModal( ProdutoComponents.ItemDetails(it, stage), 800,690);
+                .onItemDoubleClick(it -> {
+
+                    List<ProdutoModel> fornecedores =
+                            null;
+                    try {
+                        fornecedores = Main.jsonDB.listarProdutosPorCodigo(it.getCodigo());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    Map<KeyCombination, Runnable> shortcuts = new HashMap<>();
+
+                    if (!fornecedores.isEmpty()) {
+                        ProdutoModel f1 = fornecedores.get(0);
+                        shortcuts.put(
+                                new KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.SHIFT_DOWN),
+                                () -> copyCnpjFromProduto(f1)
+                        );
+                    }
+
+                    if (fornecedores.size() > 1) {
+                        ProdutoModel f2 = fornecedores.get(1);
+                        shortcuts.put(
+                                new KeyCodeCombination(KeyCode.DIGIT2, KeyCombination.SHIFT_DOWN),
+                                () -> copyCnpjFromProduto(f2)
+                        );
+                    }
+
+                    if (fornecedores.size() > 2) {
+                        ProdutoModel f3 = fornecedores.get(2);
+                        shortcuts.put(
+                                new KeyCodeCombination(KeyCode.DIGIT3, KeyCombination.SHIFT_DOWN),
+                                () -> copyCnpjFromProduto(f3)
+                        );
+                    }
+
+                    ProdutoComponents.ShowModal(
+                            ProdutoComponents.ItemDetails(it, stage),
+                            800,
+                            690,
+                            shortcuts
+                    );
                 });
     }
 
+    void copyCnpjFromProduto(ProdutoModel produto) {
+        String cnpj = cnpjFromUrl(produto.getUrlEncontrada());
+
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(cnpj);
+        clipboard.setContent(content);
+
+        UI.runOnUi(()-> Components.ShowPopup(stage, "CNPJ copiado: " + cnpj));
+
+
+
+        System.out.println("CNPJ copiado: " + cnpj);
+    }
 }

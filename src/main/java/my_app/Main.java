@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class Main {
     static HotReload hotReload;
-    static boolean devMode = true;
+    static boolean devMode = false;
 
     public static JsonDB jsonDB = new JsonDB();
     public static Stage stage;
