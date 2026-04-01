@@ -75,6 +75,18 @@ public class JsonDB {
                 .orElse(null);
     }
 
+    public static String cnpjFromUrl(String url){
+        try {
+            FornecedorModel fornecedorModel = Main.jsonDB.buscarFornecedorPorUrl(url);
+            if(fornecedorModel == null) return "Falha/CNPJ";
+            return fornecedorModel.cnpj();
+        } catch (IOException e) {
+            Components.ShowAlertError(e.getMessage());
+            return "Falha/CNPJ";
+        }
+    }
+
+
     public List<ProdutoModel> listarProdutosPorCodigo(String codigo) throws IOException {
         return carregarDb().produtos().stream()
                 .filter(p -> p.getCodigo().equals(codigo))

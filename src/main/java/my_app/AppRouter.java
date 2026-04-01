@@ -1,10 +1,11 @@
 package my_app;
 
-import megalodonte.router.v3.RouteProps;
-import megalodonte.router.v3.Router;
+import megalodonte.router.v4.RouteProps;
+import megalodonte.router.v4.Router;
 import my_app.screens.ConfiguracoesScreen;
 import my_app.screens.FornecedoresScreen;
 import my_app.screens.homescreen.HomeScreen;
+import my_app.screens.produtostablescreen.ProdutoDetails;
 import my_app.screens.produtostablescreen.ProdutosTableScreen;
 
 import java.util.Set;
@@ -22,6 +23,9 @@ public class AppRouter {
                         new RouteProps(900, 550, "Tela de configurações", true)),
 
                 new Router.Route("produtos", ctx -> new ProdutosTableScreen(ctx),
+                        new RouteProps(900, 550, "Listagem de produtos", true)),
+
+                new Router.Route("produto-details/${cod}", ctx -> new ProdutoDetails(ctx),
                         new RouteProps(900, 550, "Listagem de produtos", true))
         );
 

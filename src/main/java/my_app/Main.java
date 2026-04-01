@@ -4,7 +4,7 @@ import javafx.stage.Stage;
 import megalodonte.ListenerManager;
 import megalodonte.application.Context;
 import megalodonte.application.MegalodonteApp;
-import megalodonte.router.v3.Router;
+import megalodonte.router.v4.Router;
 import my_app.hotreload.HotReload;
 
 import java.util.Set;

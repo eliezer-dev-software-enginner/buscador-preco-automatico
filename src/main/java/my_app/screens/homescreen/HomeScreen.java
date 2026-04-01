@@ -12,8 +12,8 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
-import megalodonte.router.v3.Router;
-import megalodonte.router.v3.ScreenContext;
+import megalodonte.router.v4.Router;
+import megalodonte.router.v4.ScreenContext;
 import my_app.*;
 import my_app.Main;
 import my_app.models.ProdutoModel;
@@ -34,13 +34,12 @@ public class HomeScreen implements ScreenComponent {
     //State<String> codigo        = State.of("5666");
 
 
-    State<String> tituloBusca   = State.of("");
-    State<String> palavrasChave = State.of("");
-    State<String> codigo = State.of("");
+    State<String> tituloBusca   = State.of("catéter nasal 20 un");
+    State<String> palavrasChave = State.of("cateter nasal/tipo óculos/atóxico/caixa/20 unidades/20 un");
+    State<String> codigo = State.of("8031");
 
     // --- Controle de UX ---
     State<Boolean> buscando         = State.of(false);
-    State<Boolean> resultadosVisiveis = State.of(false);
 
     // --- Slot 1 (PNCP ou fallback 3º marketplace) ---
     State<String> fonteLabel1           = State.of("");
@@ -109,8 +108,7 @@ public class HomeScreen implements ScreenComponent {
                                 ),
 
                                 // Resultados
-                                Show.when(resultadosVisiveis, () ->
-                                        new Column(new ColumnProps().spacingOf(14))
+                                new Column(new ColumnProps().spacingOf(14))
                                                 .children(
                                                         slotCompleto(fonteLabel1, urlState1, precoState1,
                                                                 imprimiuState1, cadastrouState1),
@@ -118,9 +116,7 @@ public class HomeScreen implements ScreenComponent {
                                                                 imprimiuState2, cadastrouState2),
                                                         slotCompleto(fonteLabel3, urlState3, precoState3,
                                                                 imprimiuState3, cadastrouState3)
-                                                )
-                                ),
-
+                                                ),
                                 new SpacerVertical(20),
                                 Components.TextWithValue("Média: ", precoMedio),
                                 new SpacerVertical(20),
@@ -173,7 +169,6 @@ public class HomeScreen implements ScreenComponent {
         }
 
         buscando.set(true);
-        resultadosVisiveis.set(false);
 
         cotacaoService.buscarAsync(
                 tituloBusca.get().trim(),
@@ -183,7 +178,6 @@ public class HomeScreen implements ScreenComponent {
                     preencherSlot(resultados.get(1), fonteLabel2, urlState2, precoState2);
                     preencherSlot(resultados.get(2), fonteLabel3, urlState3, precoState3);
                     buscando.set(false);
-                    resultadosVisiveis.set(true);
                     Components.ShowPopup(context.selfStage(),"Busca de preços finalizada");
                     AudioUtils.playAudio("mixkit-correct-answer-tone-2870.wav");
 
@@ -280,7 +274,6 @@ public class HomeScreen implements ScreenComponent {
 
     void handleLimparInputs() {
             limparInputs();
-            resultadosVisiveis.set(false);
     }
 
     void limparInputs() {
