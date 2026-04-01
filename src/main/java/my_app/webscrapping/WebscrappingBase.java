@@ -25,10 +25,21 @@ public abstract class WebscrappingBase {
         this.urlBase = urlBase;
     }
 
-    protected static Document connectAndGetHtml(String url) throws IOException {
-        return Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .timeout(10_000)
+//    protected static Document connectAndGetHtml(String url) throws IOException {
+//        return Jsoup.connect(url)
+//                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+//                .timeout(10_000)
+//                .get();
+//    }
+
+    protected Document connectAndGetHtml(String url) throws IOException {
+        return org.jsoup.Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36")
+                .header("Accept-Language", "pt-BR,pt;q=0.9,en;q=0.8")
+                .header("Accept-Encoding", "gzip, deflate, br")
+                .header("Connection", "keep-alive")
+                .header("Upgrade-Insecure-Requests", "1")
+                .timeout(30000)
                 .get();
     }
 }

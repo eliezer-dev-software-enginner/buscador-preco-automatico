@@ -12,6 +12,10 @@ import java.util.function.Consumer;
 
 public class Utils {
 
+    public static void pesquisarTextNoGoogle(String text){
+     abrirUrlEmBrowser("https://www.google.com/search?q=" + text);
+    }
+
     public static void abrirUrlEmBrowser(String url){
         new Thread(()->{
             Redirect.to(url);

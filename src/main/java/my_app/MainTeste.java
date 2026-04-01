@@ -51,5 +51,14 @@ public class MainTeste {
             System.out.println("Link   : " + r.link());
         }
 
+        System.out.println("=== CCareHospitalar ===");
+        var cfcarehospitalarScrapper = new CfcarehospitalarScrapper();
+        list = cfcarehospitalarScrapper.searchProduct("gel 20g",10);
+        for (WebscrappingBase.ResultSearch r : list) {
+            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+            System.out.println("Preço  : " + r.preco());
+            System.out.println("Link   : " + r.link());
+        }
+
     }
 }

@@ -10,10 +10,12 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.ButtonProps;
 import megalodonte.props.InputProps;
+import my_app.Utils;
 
 public class HomeScreenComponents {
     public static Row topForm(State<String> codigo,State<String> tituloBusca,
-                              Runnable handleClearInputs, Runnable handleClickSearch,  Runnable handleClickSave) {
+                              Runnable handleClearInputs, Runnable handleClickSearch,
+                              Runnable handleClickSave) {
         return new Row().children(
                 new Column().children(
                         new Text("Código"),
@@ -39,6 +41,13 @@ public class HomeScreenComponents {
                 new Column().children(
                         new SpacerVertical(13),
                         new Button("Salvar", new ButtonProps().height(30)).onClick(handleClickSave)
+                ),
+                new SpacerHorizontal(20),
+                new Column().children(
+                        new SpacerVertical(13),
+                        new Button("Buscar no Google", new ButtonProps().height(30)).onClick(()->{
+                            Utils.pesquisarTextNoGoogle(tituloBusca.get().trim());
+                        })
                 )
         );
     }

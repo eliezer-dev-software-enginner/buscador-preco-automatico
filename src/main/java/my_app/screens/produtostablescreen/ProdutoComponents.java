@@ -17,6 +17,7 @@ import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
+import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
@@ -92,7 +93,8 @@ public class ProdutoComponents {
 
         return new Row(new RowProps().spacingOf(30))
                 .children(
-                        new Button(imprimiuStr).onClick(() -> {
+                        new Button(imprimiuStr, new ButtonProps().bgColor(imprimiu.map(v-> v? "#136F63": "#211A1E")))
+                                .onClick(() -> {
                             boolean newStateValue = !imprimiu.get();
                             imprimiu.set(newStateValue);
 
@@ -105,7 +107,7 @@ public class ProdutoComponents {
                         })
                 )
                 .children(
-                        new Button(cadastrouNoSiplanStr).onClick(() -> {
+                        new Button(cadastrouNoSiplanStr, new ButtonProps().bgColor(cadastrouNoSiplan.map(v-> v? "#136F63": "#211A1E"))).onClick(() -> {
                             boolean newStateValue = !cadastrouNoSiplan.get();
                             cadastrouNoSiplan.set(newStateValue);
 
