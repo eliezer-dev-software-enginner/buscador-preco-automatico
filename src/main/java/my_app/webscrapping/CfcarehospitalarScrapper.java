@@ -14,7 +14,6 @@ public class CfcarehospitalarScrapper extends WebscrappingBase {
         super("https://www.cfcarehospitalar.com.br");
     }
 
-
     /*
         <div class="showcase__slider">
            <div class="showcase__slide">
@@ -75,6 +74,19 @@ Shopify
 WooCommerce
 Magento
 Nuvemshop
+
+No meu caso tenho:
+
+<script type="application/ld+json">
+{
+  "@type": "Product",
+  ...
+  "offers": {
+      "price": "13.00",
+      "priceCurrency": "BRL"
+  }
+}
+</script>
      */
     private String extrairPreco(Element produto) {
         Element jsonScript = produto.selectFirst("script[type=application/ld+json]");

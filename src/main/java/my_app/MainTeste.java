@@ -4,6 +4,8 @@ import my_app.webscrapping.*;
 
 public class MainTeste {
     static void main(String[] args) {
+
+        WebscrappingBase scrappingInstance;
        /*
         System.out.println("=== LoganMed ===");
         var loganMed = new LoganMedScrapper();
@@ -54,6 +56,15 @@ public class MainTeste {
         System.out.println("=== CCareHospitalar ===");
         var cfcarehospitalarScrapper = new CfcarehospitalarScrapper();
         list = cfcarehospitalarScrapper.searchProduct("gel 20g",10);
+        for (WebscrappingBase.ResultSearch r : list) {
+            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+            System.out.println("Preço  : " + r.preco());
+            System.out.println("Link   : " + r.link());
+        }
+
+        System.out.println("=== Althis ===");
+        scrappingInstance = new AlthisScrapperv2();
+        list = scrappingInstance.searchProduct("gel 20g",10);
         for (WebscrappingBase.ResultSearch r : list) {
             System.out.println("Produto: " + r.nomeProdutoEncontrado());
             System.out.println("Preço  : " + r.preco());

@@ -36,6 +36,8 @@ public class CotacaoService {
             new MagazineMedicaScrapper(),
             new RhosseScrapper(),
             new DrogaraiaScrapper(),
+            new CfcarehospitalarScrapper(),
+            new AlthisScrapperv2(),
             new MedjetScrapper(),
             new SuturasOnlineScrapper()
     );
