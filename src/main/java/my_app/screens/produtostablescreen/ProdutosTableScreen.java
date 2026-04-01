@@ -46,8 +46,8 @@ public class ProdutosTableScreen implements ScreenComponent {
                 fetchData();
             }
         });
-
     }
+
     public Component render() {
         return new Column(new ColumnProps().paddingAll(20))
                 .children(

@@ -3,7 +3,7 @@ package my_app;
 import my_app.webscrapping.*;
 
 public class MainTeste {
-    public static void main(String[] args) {
+    static void main(String[] args) {
        /*
         System.out.println("=== LoganMed ===");
         var loganMed = new LoganMedScrapper();
@@ -41,5 +41,15 @@ public class MainTeste {
         System.out.println("Link    : " + r5.link());
 
         */
+
+        System.out.println("=== Drogaraia ===");
+        var loganMed = new DrogaraiaScrapper();
+        var list = loganMed.searchProduct("gel silicone 20g",10);
+        for (WebscrappingBase.ResultSearch r : list) {
+            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+            System.out.println("Preço  : " + r.preco());
+            System.out.println("Link   : " + r.link());
+        }
+
     }
 }
