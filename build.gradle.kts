@@ -59,6 +59,8 @@ dependencies {
 
     implementation("org.seleniumhq.selenium:selenium-java:4.18.1")
     implementation("io.github.bonigarcia:webdrivermanager:5.7.0")
+
+    implementation("org.controlsfx:controlsfx:11.2.1")
 }
 
 tasks.test {

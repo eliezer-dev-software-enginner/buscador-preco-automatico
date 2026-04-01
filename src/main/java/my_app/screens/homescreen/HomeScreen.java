@@ -19,6 +19,7 @@ import my_app.Main;
 import my_app.models.ProdutoModel;
 import my_app.webscrapping.CotacaoService;
 import my_app.webscrapping.CotacaoService.ResultadoCotacao;
+import org.controlsfx.control.Notifications;
 
 import java.math.BigDecimal;
 
@@ -185,6 +186,11 @@ public class HomeScreen implements ScreenComponent {
                     resultadosVisiveis.set(true);
                     Components.ShowPopup(context.selfStage(),"Busca de preços finalizada");
                     AudioUtils.playAudio("mixkit-correct-answer-tone-2870.wav");
+
+                    Notifications.create()
+                            .title("Buscador de preço")
+                            .text("Busca de preços finalizada!")
+                            .showWarning();
                 }),
                 erro -> UI.runOnUi(() -> {
                     buscando.set(false);

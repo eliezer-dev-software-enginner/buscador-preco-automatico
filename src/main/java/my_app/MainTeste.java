@@ -2,10 +2,13 @@ package my_app;
 
 import my_app.webscrapping.*;
 
+import java.util.List;
+
 public class MainTeste {
     static void main(String[] args) {
 
         WebscrappingBase scrappingInstance;
+        List<WebscrappingBase.ResultSearch> list;
        /*
         System.out.println("=== LoganMed ===");
         var loganMed = new LoganMedScrapper();
@@ -44,9 +47,18 @@ public class MainTeste {
 
         */
 
+        System.out.println("=== Medjet ===");
+        scrappingInstance = new MedjetScrapper();
+        list = scrappingInstance.searchProduct("catéter nasal 20 un",10);
+        for (WebscrappingBase.ResultSearch r : list) {
+            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+            System.out.println("Preço  : " + r.preco());
+            System.out.println("Link   : " + r.link());
+        }
+
         System.out.println("=== Drogaraia ===");
         var loganMed = new DrogaraiaScrapper();
-        var list = loganMed.searchProduct("gel silicone 20g",10);
+        list = loganMed.searchProduct("gel silicone 20g",10);
         for (WebscrappingBase.ResultSearch r : list) {
             System.out.println("Produto: " + r.nomeProdutoEncontrado());
             System.out.println("Preço  : " + r.preco());
