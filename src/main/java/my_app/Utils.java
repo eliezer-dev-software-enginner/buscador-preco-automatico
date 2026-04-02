@@ -5,6 +5,8 @@ import javafx.scene.control.TableView;
 import megalodonte.base.Redirect;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Random;
@@ -12,8 +14,18 @@ import java.util.function.Consumer;
 
 public class Utils {
 
-    public static void pesquisarTextNoGoogle(String text){
-     abrirUrlEmBrowser("https://www.google.com/search?q=" + text);
+    public static void pesquisarTextNoGoogle(String text) {
+        try {
+            String encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8);
+            String url = "https://www.google.com/search?q=" + encodedText;
+            abrirUrlEmBrowser(url);
+        } catch (Exception e) {
+            // Fallback: remove caracteres especiais e substitui espaços por +
+            String fallbackText = text.replaceAll("\\s+", "+")
+                    .replaceAll("[^\\p{Alnum}+]", "");
+            String url = "https://www.google.com/search?q=" + fallbackText;
+            abrirUrlEmBrowser(url);
+        }
     }
 
     public static void abrirUrlEmBrowser(String url){
