@@ -1,5 +1,6 @@
 package my_app.screens.produtostablescreen;
 
+import javafx.application.Platform;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import megalodonte.ComputedState;
@@ -87,39 +88,67 @@ public class ProdutoDetails implements ScreenComponent {
     }
 
 
-    public Row getItemDetailsRow(ProdutoModel f) {
-        final State<Boolean> imprimiu = State.of(f.getImprimiu());
+    public Row getItemDetailsRow(ProdutoModel model) {
+        final State<Boolean> imprimiu = State.of(model.getImprimiu());
         final var imprimiuStr = ComputedState.of(()-> imprimiu.get()? "Foi Impresso": "Marcar como impresso", imprimiu);
 
-        final State<Boolean> cadastrouNoSiplan = State.of(f.getCadastrouNoSiplan());
+        final State<Boolean> cadastrouNoSiplan = State.of(model.getCadastrouNoSiplan());
         final var cadastrouNoSiplanStr = ComputedState.of(()-> cadastrouNoSiplan.get()? "Foi cadastrado": "Marcar como cadastrado no Siplan", cadastrouNoSiplan);
+
+        // NOVO:
+        final State<String> pdfCaminho = State.of(model.getPdfCaminho());
+        final var pdfBtnStr = ComputedState.of(()->
+                        pdfCaminho.get() != null && !pdfCaminho.get().isBlank()
+                                ? "✅ PDF já salvo"
+                                : "💾 Salvar PDF",
+                pdfCaminho
+        );
+        final var pdfBtnColor = pdfCaminho.map(v->
+                v != null && !v.isBlank() ? "#136F63" : "#211A1E"
+        );
 
         return new Row(new RowProps().spacingOf(30))
                 .children(
                         new Button(imprimiuStr, new ButtonProps().bgColor(imprimiu.map(v-> v? "#136F63": "#211A1E")))
                                 .onClick(() -> {
-                            boolean newStateValue = !imprimiu.get();
-                            imprimiu.set(newStateValue);
-
-                            try {
-                                Main.jsonDB.atualizarStatusDeImpressao(newStateValue, f);
-                                EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
-                            } catch (IOException e) {
-                                UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
-                            }
-                        })
-                )
-                .children(
-                        new Button(cadastrouNoSiplanStr, new ButtonProps().bgColor(cadastrouNoSiplan.map(v-> v? "#136F63": "#211A1E"))).onClick(() -> {
-                            boolean newStateValue = !cadastrouNoSiplan.get();
-                            cadastrouNoSiplan.set(newStateValue);
-                            try {
-                                Main.jsonDB.atualizarStatusDeCadastroNoSiplan(newStateValue, f);
-                                EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
-                            } catch (IOException e) {
-                                UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
-                            }
-                        })
+                                    boolean newStateValue = !imprimiu.get();
+                                    imprimiu.set(newStateValue);
+                                    try {
+                                        Main.jsonDB.atualizarStatusDeImpressao(newStateValue, model);
+                                        EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
+                                    } catch (IOException e) {
+                                        UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+                                    }
+                                }),
+                        new Button(cadastrouNoSiplanStr, new ButtonProps().bgColor(cadastrouNoSiplan.map(v-> v? "#136F63": "#211A1E")))
+                                .onClick(() -> {
+                                    boolean newStateValue = !cadastrouNoSiplan.get();
+                                    cadastrouNoSiplan.set(newStateValue);
+                                    try {
+                                        Main.jsonDB.atualizarStatusDeCadastroNoSiplan(newStateValue, model);
+                                        EventBus.getInstance().publish(ModelAtualizacaoEvent.getInstance());
+                                    } catch (IOException e) {
+                                        UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+                                    }
+                                }),
+                        new Button(pdfBtnStr, new ButtonProps().bgColor(pdfBtnColor))
+                                .onClick(() -> {
+                                    new PdfSaver().saveAsPdf(
+                                            model.getUrlEncontrada(),
+                                            model.getCodigo(),
+                                            model.getTituloBusca(),
+                                            path -> {
+                                                try {
+                                                    model.setPdfCaminho(path);
+                                                    Main.jsonDB.atualizarPdfCaminho(path, model);
+                                                    UI.runOnUi(() -> pdfCaminho.set(path)); // atualiza o botão
+                                                } catch (IOException e) {
+                                                    UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+                                                }
+                                                UI.runOnUi(() -> Components.ShowPopup(ctx.selfStage(), "PDF salvo: " + path));
+                                            }
+                                    );
+                                })
                 );
     }
 

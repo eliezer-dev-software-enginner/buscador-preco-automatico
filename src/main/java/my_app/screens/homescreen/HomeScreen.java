@@ -3,6 +3,7 @@ package my_app.screens.homescreen;
 import javafx.stage.Stage;
 import megalodonte.ComputedState;
 import megalodonte.State;
+import megalodonte.components.layout_components.Row;
 import megalodonte.v2.Show;
 import megalodonte.base.Redirect;
 import megalodonte.base.UI;
@@ -21,7 +22,11 @@ import my_app.webscrapping.CotacaoService;
 import my_app.webscrapping.CotacaoService.ResultadoCotacao;
 import org.controlsfx.control.Notifications;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
+
+import static my_app.Components.*;
 
 public class HomeScreen implements ScreenComponent {
 
@@ -34,9 +39,9 @@ public class HomeScreen implements ScreenComponent {
     //State<String> codigo        = State.of("5666");
 
 
-    State<String> tituloBusca   = State.of("catéter nasal 20 un");
-    State<String> palavrasChave = State.of("cateter nasal/tipo óculos/atóxico/caixa/20 unidades/20 un");
-    State<String> codigo = State.of("8031");
+    State<String> tituloBusca   = State.of("");
+    State<String> palavrasChave = State.of("");
+    State<String> codigo = State.of("");
 
     // --- Controle de UX ---
     State<Boolean> buscando         = State.of(false);
@@ -92,7 +97,7 @@ public class HomeScreen implements ScreenComponent {
                                 HomeScreenComponents.topForm(codigo, tituloBusca, this::handleLimparInputs, this::buscar, this::salvar),
 
                                 new SpacerVertical(10),
-                                Components.InputColumn("Palavras-chave (separadas por /)", palavrasChave),
+                                InputColumn("Palavras-chave (separadas por /)", palavrasChave),
                                 new SpacerVertical(5),
                                 new Text(
                                         "💡 Serão buscados vários resultados por site. O produto com mais " +
@@ -129,11 +134,35 @@ public class HomeScreen implements ScreenComponent {
     private Component slotCompleto(State<String> fonteLabel,
                                    State<String> url, State<String> preco,
                                    State<String> imprimiu, State<String> cadastrou) {
+
+        Runnable handleClear = ()->{
+            fonteLabel.set("");
+            url.set("");
+            preco.set("0");
+            imprimiu.set("Não");
+            cadastrou.set("Não");
+        };
         return new Column(new ColumnProps().spacingOf(4)).children(
                 new Text(fonteLabel, new TextProps().fontSize(11).bold()),
-                Components.produtoForm(url, preco, imprimiu, cadastrou)
+                produtoForm(url, preco, imprimiu, cadastrou, handleClear)
         );
     }
+
+    ButtonProps propsbtnClearFields = new ButtonProps().bgColor("#C1666B");
+
+    public Component produtoForm(State<String> urlState, State<String> precoState, State<String> imprimiuState,
+                                 State<String> cadastrouNoSiplanState, Runnable handleClear){
+        return new Row(new RowProps().spacingOf(10))
+                .children(
+                        InputColumn("url", urlState, "Url encontrada"),
+                        InputColumnCurrency("Preço", precoState),
+                        SelectColumn("Imprimiu?", List.of("Sim","Não"), imprimiuState, it->it),
+                        SelectColumn("Registou no Siplan?", List.of("Sim","Não"), cadastrouNoSiplanState, it->it),
+                       new Button("Limpar campos", propsbtnClearFields).onClick(handleClear)
+                );
+    }
+
+
 
     // =========================================================================
     // Menu e formulário de cabeçalho
@@ -216,34 +245,37 @@ public class HomeScreen implements ScreenComponent {
     void salvar() {
         Stage stage = context.selfStage();
 
-        if(codigo.get().trim().isEmpty()){
+        if (codigo.get().trim().isEmpty()) {
             Components.ShowAlertError("Preencha o código!");
             return;
         }
-
-        if(tituloBusca.get().trim().isEmpty()){
+        if (tituloBusca.get().trim().isEmpty()) {
             Components.ShowAlertError("Preencha o título de busca!");
             return;
         }
-
-        if(inputsAreInvalid(urlState1, precoState1) || inputsAreInvalid(urlState2, precoState2) ||
-        inputsAreInvalid(urlState3, precoState3) ){
+        if (inputsAreInvalid(urlState1, precoState1) || inputsAreInvalid(urlState2, precoState2) ||
+                inputsAreInvalid(urlState3, precoState3)) {
             Components.ShowAlertError("Confira os dados e tente de novo! (preço, url)");
             return;
         }
 
         UI.runOnUi(() -> {
             try {
-                Main.jsonDB.salvarProduto(montarModel(1, urlState1, precoState1, imprimiuState1, cadastrouState1));
-                Components.ShowPopup(stage, "Produto 1 salvo!");
+                ProdutoModel p1 = montarModel(urlState1, precoState1, imprimiuState1, cadastrouState1);
+                ProdutoModel p2 = montarModel(urlState2, precoState2, imprimiuState2, cadastrouState2);
+                ProdutoModel p3 = montarModel(urlState3, precoState3, imprimiuState3, cadastrouState3);
 
-                Main.jsonDB.salvarProduto(montarModel(2, urlState2, precoState2, imprimiuState2, cadastrouState2));
-                Components.ShowPopup(stage, "Produto 2 salvo!");
+                Main.jsonDB.salvarProduto(p1);
+                Main.jsonDB.salvarProduto(p2);
+                Main.jsonDB.salvarProduto(p3);
 
-                Main.jsonDB.salvarProduto(montarModel(3, urlState3, precoState3, imprimiuState3, cadastrouState3));
-                Components.ShowPopup(stage, "Produto 3 salvo!");
-
+                Components.ShowPopup(stage, "Produtos salvos! Gerando PDFs...");
                 EventBus.getInstance().publish(ModelCadastradoEvent.getInstance());
+
+                salvarPdf(p1, stage);
+                salvarPdf(p2, stage);
+                salvarPdf(p3, stage);
+
                 limparInputs();
             } catch (Exception e) {
                 Components.ShowAlertError(e.getMessage());
@@ -251,15 +283,29 @@ public class HomeScreen implements ScreenComponent {
         });
     }
 
+    private void salvarPdf(ProdutoModel model, Stage stage) {
+        new PdfSaver().saveAsPdf(
+                model.getUrlEncontrada(),
+                model.getCodigo(),
+                model.getTituloBusca(),
+                path -> {
+                    try {
+                        model.setPdfCaminho(path);
+                        Main.jsonDB.atualizarPdfCaminho(path, model);
+                    } catch (IOException e) {
+                        UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+                    }
+                    UI.runOnUi(() -> Components.ShowPopup(stage, "PDF salvo: " + path));
+                }
+        );
+    }
     private boolean inputsAreInvalid(State<String> urlState, State<String> precoState) {
         String precoValue = precoState.get().trim();
         return urlState.get().trim().isEmpty() || precoValue.isEmpty() || precoValue.equals("0");
     }
 
 
-    private ProdutoModel montarModel(int slot,
-                                     State<String> urlState, State<String> precoState,
-                                     State<String> imprimiuState, State<String> cadastrouState) {
+    private ProdutoModel montarModel(State<String> urlState, State<String> precoState, State<String> imprimiuState, State<String> cadastrouState) {
 
         return new ProdutoModel(
                 codigo.get().trim(),

@@ -35,7 +35,7 @@ public class HomeScreenComponents {
                 new SpacerHorizontal(20),
                 new Column().children(
                         new SpacerVertical(13),
-                        new Button("Limpar", new ButtonProps().height(30)).onClick(handleClearInputs)
+                        new Button("Limpar", new ButtonProps().height(30).bgColor("#DD0426")).onClick(handleClearInputs)
                 ),
                 new SpacerHorizontal(20),
                 new Column().children(

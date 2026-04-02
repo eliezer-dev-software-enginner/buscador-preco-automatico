@@ -80,19 +80,6 @@ public class Components {
         delay.play();
     }
 
-
-    public static Component produtoForm( State<String> urlState,  State<String> precoState, State<String> imprimiuState,
-                                         State<String> cadastrouNoSiplanState){
-        return new Row(new RowProps().spacingOf(10))
-                .children(
-                    InputColumn("url", urlState, "Url encontrada"),
-                        InputColumnCurrency("Preço", precoState),
-                        SelectColumn("Imprimiu?", List.of("Sim","Não"), imprimiuState, it->it),
-                        SelectColumn("Registou no Siplan?", List.of("Sim","Não"), cadastrouNoSiplanState, it->it)
-                );
-    }
-
-
     private static final NumberFormat BRL =
             NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
     public static Component InputColumnCurrency(String label, State<String> inputState) {

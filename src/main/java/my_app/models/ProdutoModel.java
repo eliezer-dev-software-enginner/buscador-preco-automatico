@@ -3,7 +3,6 @@ package my_app.models;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-//TODO: salvar palavras chaves
 public class ProdutoModel {
 
     private String id;
@@ -15,6 +14,8 @@ public class ProdutoModel {
     private Boolean imprimiu;
     private Boolean cadastrouNoSiplan;
     private long dataCriacao;
+
+    private String pdfCaminho;
 
     public ProdutoModel(String codigo,
                         String tituloBusca,
@@ -99,5 +100,10 @@ public class ProdutoModel {
 
     public String getPalavrasChaves() {
         return palavrasChaves;
+    }
+
+    public String getPdfCaminho() { return pdfCaminho; }
+    public void setPdfCaminho(String pdfCaminho) {
+        this.pdfCaminho = pdfCaminho;
     }
 }

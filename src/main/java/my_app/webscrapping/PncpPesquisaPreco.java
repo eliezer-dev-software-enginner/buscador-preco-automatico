@@ -1,59 +1,39 @@
 package my_app.webscrapping;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.FileWriter;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalDouble;
+import java.util.concurrent.TimeUnit;
 
 public class PncpPesquisaPreco {
 
-    private static final String BASE_CONSULTA = "https://pncp.gov.br/api/consulta/v1";
-    private static final String BASE_PNCP     = "https://pncp.gov.br/api/pncp/v1";
-
-    public enum Modalidade {
-        LEILAO(1), DIALOGO_COMPETITIVO(2), CONCURSO(3), CONCORRENCIA(4),
-        CONCORRENCIA_INTERNACIONAL(5), PREGAO_ELETRONICO(6), PREGAO_PRESENCIAL(7),
-        DISPENSA(8), INEXIGIBILIDADE(9);
-
-        public final int codigo;
-        Modalidade(int codigo) { this.codigo = codigo; }
-    }
-
-    private final HttpClient httpClient;
-    private final ObjectMapper mapper;
-
-    public PncpPesquisaPreco() {
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(45))
-                .build();
-        this.mapper = new ObjectMapper();
-    }
-
-    // -------------------------------------------------------------------------
-    // Modelo
-    // -------------------------------------------------------------------------
-    public static class ItemEncontrado {
-        public String municipio, cnpjOrgao, orgaoNome, ano, sequencial, numeroItem, descricao, unidade;
-        public int    modalidade;
-        public Double quantidade, valorUnitario, valorTotal;
-
+    public record ItemEncontrado(
+            String municipio,
+            String cnpjOrgao,
+            String orgaoNome,
+            int modalidade,
+            String ano,
+            String sequencial,
+            String numeroItem,
+            String descricao,
+            String unidade,
+            Double quantidade,
+            Double valorUnitario,
+            Double valorTotal
+    ) {
         @Override
         public String toString() {
             return String.format("%-25s | %-55s | R$ %10.2f | %s",
-                    municipio     != null ? municipio : "-",
-                    descricao     != null ? (descricao.length() > 55
+                    municipio != null ? municipio : "-",
+                    descricao != null ? (descricao.length() > 55
                             ? descricao.substring(0, 52) + "..." : descricao) : "-",
                     valorUnitario != null ? valorUnitario : 0.0,
-                    unidade       != null ? unidade : "-");
+                    unidade != null ? unidade : "-");
         }
 
         public String toCsvLine() {
@@ -65,265 +45,191 @@ public class PncpPesquisaPreco {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Etapa 1
-    // -------------------------------------------------------------------------
-    public List<JsonNode> buscarContratacoesMG(
-            String dataInicial, String dataFinal,
-            Modalidade modalidade, int totalPaginas) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ContratacaoResponse(List<Contratacao> data) {}
 
-        List<JsonNode> contratacoes = new ArrayList<>();
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Contratacao(
+            OrgaoEntidade orgaoEntidade,
+            UnidadeOrgao unidadeOrgao,
+            Integer anoCompra,
+            Integer sequencialCompra
+    ) {}
 
-        for (int pagina = 1; pagina <= totalPaginas; pagina++) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record OrgaoEntidade(
+            String cnpj,
+            String razaoSocial
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record UnidadeOrgao(
+            String municipioNome
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ItemPncp(
+            String numeroItem,
+            String descricao,
+            String unidadeMedida,
+            Double quantidade,
+            Double valorUnitarioEstimado,
+            Double valorTotal
+    ) {}
+
+    private static final String BASE_CONSULTA = "https://pncp.gov.br/api/consulta/v1";
+    private static final String BASE_PNCP     = "https://pncp.gov.br/api/pncp/v1";
+
+    private final OkHttpClient http = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .build();
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    public enum Modalidade {
+        LEILAO(1), DIALOGO_COMPETITIVO(2), CONCURSO(3), CONCORRENCIA(4),
+        CONCORRENCIA_INTERNACIONAL(5), PREGAO_ELETRONICO(6), PREGAO_PRESENCIAL(7),
+        DISPENSA(8), INEXIGIBILIDADE(9);
+
+        public final int codigo;
+        Modalidade(int codigo) { this.codigo = codigo; }
+    }
+
+    // ---------------------------------------------------------------------
+    // HTTP
+    // ---------------------------------------------------------------------
+    private String get(String url) throws IOException {
+        Request req = new Request.Builder()
+                .url(url)
+                .header("Accept", "application/json")
+                .header("User-Agent", "Mozilla/5.0")
+                .build();
+
+        try (Response resp = http.newCall(req).execute()) {
+            if (!resp.isSuccessful())
+                throw new IOException("HTTP " + resp.code());
+            return resp.body() != null ? resp.body().string() : "";
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Buscar contratações
+    // ---------------------------------------------------------------------
+    public List<Contratacao> buscarContratacoesMG(
+            String dataInicial,
+            String dataFinal,
+            Modalidade modalidade,
+            int paginas) throws Exception {
+
+        List<Contratacao> lista = new ArrayList<>();
+
+        for (int p = 1; p <= paginas; p++) {
             String url = BASE_CONSULTA + "/contratacoes/publicacao"
                     + "?dataInicial=" + dataInicial
-                    + "&dataFinal="   + dataFinal
+                    + "&dataFinal=" + dataFinal
                     + "&codigoModalidadeContratacao=" + modalidade.codigo
-                    + "&uf=MG"
-                    + "&pagina="      + pagina
-                    + "&tamanhoPagina=50";
+                    + "&uf=MG&pagina=" + p + "&tamanhoPagina=50";
 
-            try {
-                String json = get(url);
-                JsonNode root = mapper.readTree(json);
-                JsonNode data = root.get("data");
+            System.out.println("   [" + modalidade.name() + "] Pag. " + p);
+            ContratacaoResponse resp =
+                    mapper.readValue(get(url), ContratacaoResponse.class);
 
-                if (data == null || !data.isArray() || data.isEmpty()) break;
-
-                for (JsonNode node : data) contratacoes.add(node);
-
-                System.out.printf("   [%s] Pag. %d: %d contratacoes%n",
-                        modalidade.name(), pagina, data.size());
-
-                Thread.sleep(800); // era 400ms
-
-            } catch (Exception e) {
-                System.err.printf("   Erro [%s] pag. %d: %s%n",
-                        modalidade.name(), pagina, e.getMessage());
+            if (resp.data() == null || resp.data().isEmpty())
                 break;
-            }
+
+            lista.addAll(resp.data());
+            Thread.sleep(300);
         }
 
-        return contratacoes;
+        return lista;
     }
 
-    // -------------------------------------------------------------------------
-    // Etapa 2
-    // -------------------------------------------------------------------------
-    public List<JsonNode> buscarItensContratacao(String cnpj, String ano, String sequencial) {
+    // ---------------------------------------------------------------------
+    // Buscar itens
+    // ---------------------------------------------------------------------
+    public List<ItemPncp> buscarItens(String cnpj, String ano, String seq) throws Exception {
         String cnpjLimpo = cnpj.replaceAll("[.\\-/]", "");
         String url = BASE_PNCP + "/orgaos/" + cnpjLimpo
-                + "/compras/" + ano + "/" + sequencial + "/itens";
-        try {
-            String json = get(url);
-            JsonNode root = mapper.readTree(json);
-            List<JsonNode> itens = new ArrayList<>();
-            if (root.isArray()) root.forEach(itens::add);
-            else if (root.has("data") && root.get("data").isArray())
-                root.get("data").forEach(itens::add);
-            return itens;
-        } catch (Exception e) {
-            return List.of();
-        }
+                + "/compras/" + ano + "/" + seq + "/itens";
+
+        ItemPncp[] itens = mapper.readValue(get(url), ItemPncp[].class);
+        return Arrays.asList(itens);
     }
 
-    public List<JsonNode> buscarResultadoItem(
-            String cnpj, String ano, String sequencial, String numeroItem) {
-        String cnpjLimpo = cnpj.replaceAll("[.\\-/]", "");
-        String url = BASE_PNCP + "/orgaos/" + cnpjLimpo
-                + "/compras/" + ano + "/" + sequencial
-                + "/itens/" + numeroItem + "/resultados";
-        try {
-            String json = get(url);
-            JsonNode root = mapper.readTree(json);
-            List<JsonNode> resultados = new ArrayList<>();
-            if (root.isArray()) root.forEach(resultados::add);
-            else if (root.has("data") && root.get("data").isArray())
-                root.get("data").forEach(resultados::add);
-            return resultados;
-        } catch (Exception e) {
-            return List.of();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // pesquisarPrecoItem — overload com maxPaginas para o CotacaoService controlar
-    // -------------------------------------------------------------------------
-
-    /**
-     * Versão usada pelo CotacaoService — recebe maxPaginas explicitamente.
-     * Use maxPaginas=2 para buscas rápidas na UI; maxPaginas=5+ para pesquisas completas.
-     */
+    // ---------------------------------------------------------------------
+    // Pesquisa principal
+    // ---------------------------------------------------------------------
     public List<ItemEncontrado> pesquisarPrecoItem(
             String descricaoBusca,
             String dataInicial,
             String dataFinal,
-            int maxPaginas,
-            Modalidade... modalidades) {
+            int paginas,
+            Modalidade... modalidades) throws Exception {
 
         List<ItemEncontrado> resultados = new ArrayList<>();
 
         for (Modalidade modalidade : modalidades) {
-            List<JsonNode> contratacoes =
-                    buscarContratacoesMG(dataInicial, dataFinal, modalidade, maxPaginas);
+            List<Contratacao> contratacoes =
+                    buscarContratacoesMG(dataInicial, dataFinal, modalidade, paginas);
 
-            for (JsonNode c : contratacoes) {
-                String cnpj       = texto(c, "orgaoEntidade", "cnpj");
-                String orgaoNome  = texto(c, "orgaoEntidade", "razaoSocial");
-                String ano        = textoPlano(c, "anoCompra");
-                String sequencial = textoPlano(c, "sequencialCompra");
-                String municipio  = texto(c, "unidadeOrgao", "municipioNome");
+            for (Contratacao c : contratacoes) {
 
-                if (cnpj == null || ano == null || sequencial == null) continue;
+                if (c.orgaoEntidade() == null) continue;
 
-                List<JsonNode> itens = buscarItensContratacao(cnpj, ano, sequencial);
+                String cnpj = c.orgaoEntidade().cnpj();
+                String orgaoNome = c.orgaoEntidade().razaoSocial();
+                String municipio = c.unidadeOrgao() != null
+                        ? c.unidadeOrgao().municipioNome() : null;
 
-                for (JsonNode item : itens) {
-                    String descricao = textoPlano(item, "descricao");
-                    if (descricao == null) continue;
+                String ano = String.valueOf(c.anoCompra());
+                String seq = String.valueOf(c.sequencialCompra());
 
-                    if (descricao.toLowerCase().contains(descricaoBusca.toLowerCase())) {
-                        ItemEncontrado ie = new ItemEncontrado();
-                        ie.municipio     = municipio;
-                        ie.cnpjOrgao     = cnpj;
-                        ie.orgaoNome     = orgaoNome;
-                        ie.modalidade    = modalidade.codigo;
-                        ie.ano           = ano;
-                        ie.sequencial    = sequencial;
-                        ie.numeroItem    = textoPlano(item, "numeroItem");
-                        ie.descricao     = descricao;
-                        ie.unidade       = textoPlano(item, "unidadeMedida");
-                        ie.quantidade    = doubleNode(item, "quantidade");
-                        ie.valorUnitario = doubleNode(item, "valorUnitarioEstimado");
-                        ie.valorTotal    = doubleNode(item, "valorTotal");
-                        resultados.add(ie);
+                List<ItemPncp> itens = buscarItens(cnpj, ano, seq);
+
+                for (ItemPncp item : itens) {
+                    if (item.descricao() == null) continue;
+
+                    if (item.descricao().toLowerCase()
+                            .contains(descricaoBusca.toLowerCase())) {
+
+                        resultados.add(new ItemEncontrado(
+                                municipio,
+                                cnpj,
+                                orgaoNome,
+                                modalidade.codigo,
+                                ano,
+                                seq,
+                                item.numeroItem(),
+                                item.descricao(),
+                                item.unidadeMedida(),
+                                item.quantidade(),
+                                item.valorUnitarioEstimado(),
+                                item.valorTotal()
+                        ));
                     }
                 }
 
-                try { Thread.sleep(500); } catch (InterruptedException ignored) {} // era 250ms
+                Thread.sleep(400);
             }
         }
 
         return resultados;
     }
-
-    /**
-     * Versão original mantida para compatibilidade (usa 5 páginas por padrão).
-     */
-    public List<ItemEncontrado> pesquisarPrecoItem(
-            String descricaoBusca,
-            String dataInicial,
-            String dataFinal,
-            Modalidade... modalidades) {
-        return pesquisarPrecoItem(descricaoBusca, dataInicial, dataFinal, 5, modalidades);
-    }
-
-    // -------------------------------------------------------------------------
-    // Relatório e CSV (mantidos do original)
-    // -------------------------------------------------------------------------
-    public void exibirRelatorio(List<ItemEncontrado> resultados, String descricaoBusca) {
-        if (resultados.isEmpty()) {
-            System.out.printf("%nNenhum item com '%s' encontrado.%n", descricaoBusca);
-            return;
-        }
-        System.out.printf("%n%d ocorrencias de '%s' encontradas!%n%n",
-                resultados.size(), descricaoBusca);
-        System.out.printf("%-25s | %-55s | %12s | %s%n",
-                "Municipio", "Descricao", "Vlr Unitario", "Unidade");
-        System.out.println("-".repeat(105));
-        resultados.forEach(System.out::println);
-
-        List<Double> valores = resultados.stream()
-                .filter(i -> i.valorUnitario != null && i.valorUnitario > 0)
-                .map(i -> i.valorUnitario).toList();
-
-        if (!valores.isEmpty()) {
-            OptionalDouble media = valores.stream().mapToDouble(Double::doubleValue).average();
-            double min = valores.stream().mapToDouble(Double::doubleValue).min().orElse(0);
-            double max = valores.stream().mapToDouble(Double::doubleValue).max().orElse(0);
-            System.out.println("\nEstatisticas de preco unitario:");
-            System.out.printf("   Media:   R$ %,.2f%n", media.orElse(0));
-            System.out.printf("   Minimo:  R$ %,.2f%n", min);
-            System.out.printf("   Maximo:  R$ %,.2f%n", max);
-        }
-    }
-
-    public void exportarCsv(List<ItemEncontrado> resultados, String arquivo) throws IOException {
-        try (FileWriter fw = new FileWriter(arquivo)) {
-            fw.write("municipio,cnpj_orgao,orgao_nome,modalidade,ano,sequencial," +
-                    "item_numero,descricao,unidade,qtd,valor_unitario,valor_total\n");
-            for (ItemEncontrado ie : resultados) fw.write(ie.toCsvLine() + "\n");
-        }
-        System.out.println("\nExportado: " + arquivo);
-    }
-
-    // -------------------------------------------------------------------------
-    // Helpers HTTP e JSON
-    // -------------------------------------------------------------------------
-    private String get(String url) throws IOException, InterruptedException {
-        int tentativas = 0;
-
-        while (tentativas < 3) {
-            try {
-                HttpRequest req = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .timeout(Duration.ofSeconds(40))
-                        .header("Accept", "application/json")
-                        .header("User-Agent", "Mozilla/5.0")
-                        .GET()
-                        .build();
-
-                HttpResponse<String> resp =
-                        httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-
-                if (resp.statusCode() == 200)
-                    return resp.body();
-
-                throw new IOException("HTTP " + resp.statusCode());
-
-            } catch (Exception e) {
-                tentativas++;
-                System.out.println("Retry " + tentativas + " -> " + url);
-                Thread.sleep(1500);
-            }
-        }
-
-        throw new IOException("Falha após retries");
-    }
-
-    private String texto(JsonNode node, String... campos) {
-        JsonNode atual = node;
-        for (String campo : campos) {
-            if (atual == null || !atual.has(campo)) return null;
-            atual = atual.get(campo);
-        }
-        return (atual != null && !atual.isNull()) ? atual.asText() : null;
-    }
-
-    private String textoPlano(JsonNode node, String campo) {
-        JsonNode n = node.get(campo);
-        return (n != null && !n.isNull()) ? n.asText() : null;
-    }
-
-    private Double doubleNode(JsonNode node, String campo) {
-        JsonNode n = node.get(campo);
-        return (n != null && !n.isNull() && n.isNumber()) ? n.asDouble() : null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Main — uso standalone (mantido do original)
-    // -------------------------------------------------------------------------
     public static void main(String[] args) throws Exception {
-        PncpPesquisaPreco pesquisa = new PncpPesquisaPreco();
-        String descricao   = "papel a4";
-        String dataInicial = "20250101";
-        String dataFinal   = "20250329";
+         PncpPesquisaPreco pesquisa = new PncpPesquisaPreco();
+         String descricao = "papel a4";
+         String dataInicial = "20250101";
+         String dataFinal = "20250329";
 
-        List<ItemEncontrado> resultados = pesquisa.pesquisarPrecoItem(
-                descricao, dataInicial, dataFinal,
-                Modalidade.PREGAO_ELETRONICO, Modalidade.DISPENSA);
+          List<ItemEncontrado> resultados = pesquisa.pesquisarPrecoItem(
+                  descricao, dataInicial, dataFinal,2, Modalidade.PREGAO_ELETRONICO, Modalidade.DISPENSA);
 
-        pesquisa.exibirRelatorio(resultados, descricao);
-        pesquisa.exportarCsv(resultados, "precos_" + descricao.replace(" ", "_") + "_mg.csv");
-    }
+        for (ItemEncontrado resultado : resultados) {
+            System.out.println(resultado);
+        }
+
+     }
+
 }

@@ -133,4 +133,48 @@ public class MedjetScrapper extends WebscrappingBase {
 
         return "";
     }
+
+    @Override
+    public String getPriceFromUrlOfProduct(String url) {
+        WebDriverManager.chromedriver().setup();
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+
+        WebDriver driver = new ChromeDriver(options);
+
+        try {
+            driver.get(url);
+
+            // espera o preço carregar
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.presenceOfElementLocated(
+                            By.cssSelector("#preco_atual")));
+
+            Document doc = Jsoup.parse(driver.getPageSource());
+
+            // melhor fonte do preço
+            Element precoInput = doc.selectFirst("#preco_atual");
+            if (precoInput != null) {
+                String preco = precoInput.attr("value");
+                return "R$ " + preco.replace(".", ",");
+            }
+
+            // fallback se não existir input
+            Element precoSpan = doc.selectFirst("#variacaoPreco");
+            if (precoSpan != null) {
+                return "R$ " + precoSpan.text().trim();
+            }
+
+            return "";
+
+        } catch (Exception e) {
+            return "";
+        } finally {
+            driver.quit();
+        }
+    }
 }

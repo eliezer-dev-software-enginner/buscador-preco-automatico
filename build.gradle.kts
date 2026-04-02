@@ -30,7 +30,8 @@ java {
 
 // 🛑 2. CONFIGURA O PLUGIN DO JAVAFX
 javafx {
-    version = "17" // Mantida a versão 17.0.10.
+   /// version = "17" // Mantida a versão 17.0.10.
+    version = "25.0.1"
 
     modules("javafx.controls", "javafx.graphics", "javafx.web")
 }
@@ -50,6 +51,8 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
 
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     implementation("org.kordamp.ikonli:ikonli-core:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-antdesignicons-pack:12.4.0")
@@ -61,6 +64,8 @@ dependencies {
     implementation("io.github.bonigarcia:webdrivermanager:5.7.0")
 
     implementation("org.controlsfx:controlsfx:11.2.1")
+
+    implementation("com.github.librepdf:openpdf:1.3.43")
 }
 
 tasks.test {

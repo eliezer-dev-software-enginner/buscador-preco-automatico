@@ -167,17 +167,17 @@ public class CotacaoService {
             return itens.stream()
                     .map(item -> {
                         int score = KeywordScorer.calcularScore(
-                                item.descricao, tituloBusca, palavrasChave);
-                        String precoFmt = item.valorUnitario != null
-                                ? String.format("R$ %.2f", item.valorUnitario) : "";
+                                item.descricao(), tituloBusca, palavrasChave);
+                        String precoFmt = item.valorUnitario() != null
+                                ? String.format("R$ %.2f", item.valorUnitario()) : "";
                         String link = String.format(
                                 "https://pncp.gov.br/app/editais/%s/%s/%s",
-                                item.cnpjOrgao != null
-                                        ? item.cnpjOrgao.replaceAll("[.\\-/]", "") : "",
-                                item.ano, item.sequencial);
+                                item.cnpjOrgao() != null
+                                        ? item.cnpjOrgao().replaceAll("[.\\-/]", "") : "",
+                                item.ano(), item.sequencial());
                         return new ResultadoCotacao(
-                                item.descricao, precoFmt, link,
-                                "PNCP – " + (item.municipio != null ? item.municipio : "MG"),
+                                item.descricao(), precoFmt, link,
+                                "PNCP – " + (item.municipio() != null ? item.municipio() : "MG"),
                                 score, true);
                     })
                     .max(Comparator.comparingInt(ResultadoCotacao::score))

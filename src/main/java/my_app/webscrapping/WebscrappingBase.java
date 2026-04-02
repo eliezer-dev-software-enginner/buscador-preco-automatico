@@ -42,4 +42,8 @@ public abstract class WebscrappingBase {
                 .timeout(30000)
                 .get();
     }
+
+    public String getPriceFromUrlOfProduct(String url){
+        return "0";
+    }
 }

@@ -118,4 +118,17 @@ public class JsonDB {
 
         salvarDb(db);
     }
+
+    public void atualizarPdfCaminho(String caminho, ProdutoModel model) throws IOException {
+        DbModel db = carregarDb();
+
+        for (ProdutoModel p : db.produtos()) {
+            if (p.getId().equals(model.getId())) {
+                p.setPdfCaminho(caminho);
+                break;
+            }
+        }
+
+        salvarDb(db);
+    }
 }
