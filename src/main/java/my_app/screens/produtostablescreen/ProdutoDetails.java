@@ -30,7 +30,7 @@ import java.util.List;
 public class ProdutoDetails implements ScreenComponent {
     private final ScreenContext ctx;
     private String cod;
-    ListState<ProdutoModel> produtoModelListState = ListState.of(List.of());
+    ListState<ProdutoModel> produtoModelListState = ListState.ofEmpty();
 
     public ProdutoDetails(ScreenContext ctx) {
         this.ctx = ctx;
@@ -41,45 +41,10 @@ public class ProdutoDetails implements ScreenComponent {
         var params = ctx.getParams();
         this.cod = params.get("cod");
 
-        try{
-          var produtos =  Main.jsonDB.listarProdutosPorCodigo(cod);
-          UI.runOnUi(()-> produtoModelListState.set(produtos));
-        }catch (Exception _){}
+        loadProdutosByCodigo();
 
-        KeyBind keyBind = new KeyBind()
-                .on(KeyCode.Q, ()-> copyToClipboard(this.cod,"Código copiado"), KeyBind.Modifier.CTRL)
-                //copia os 3 cnpj
-                .on(KeyCode.DIGIT1, ()-> {
-                   var model = produtoModelListState.get(0);
-                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
-                    copyToClipboard(cnpjFromUrl, "CNPJ(1): " + cnpjFromUrl + " copiado com sucesso");
-                }, KeyBind.Modifier.SHIFT)
-                .on(KeyCode.DIGIT2, ()-> {
-                    var model = produtoModelListState.get(1);
-                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
-                    copyToClipboard(cnpjFromUrl, "CNPJ(2): " + cnpjFromUrl + " copiado com sucesso");
-                }, KeyBind.Modifier.SHIFT)
-                .on(KeyCode.DIGIT3, ()-> {
-                    var model = produtoModelListState.get(2);
-                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
-                    copyToClipboard(cnpjFromUrl, "CNPJ(3): " + cnpjFromUrl + " copiado com sucesso");
-                }, KeyBind.Modifier.SHIFT)
-
-                //copia is 3 preços
-                .on(KeyCode.DIGIT1, ()-> {
-                    var model = produtoModelListState.get(0);
-                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 1)");
-                }, KeyBind.Modifier.ALT)
-                .on(KeyCode.DIGIT2, ()-> {
-                    var model = produtoModelListState.get(1);
-                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 2)");
-                }, KeyBind.Modifier.ALT)
-                .on(KeyCode.DIGIT3, ()-> {
-                    var model = produtoModelListState.get(2);
-                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 3)");
-                }, KeyBind.Modifier.ALT);
-
-        ctx.whenReady((scene)-> keyBind.attach(scene));
+        KeyBind keyBind = createKeyBind();
+        ctx.whenReady((scene) -> keyBind.attach(scene));
     }
 
     @Override
@@ -157,6 +122,57 @@ public class ProdutoDetails implements ScreenComponent {
                         })
                 );
     }
+
+    private void loadProdutosByCodigo() {
+        try {
+            var produtos = Main.jsonDB.listarProdutosPorCodigo(cod);
+            UI.runOnUi(() -> produtoModelListState.set(produtos));
+        } catch (Exception ignored) {}
+    }
+
+    private KeyBind createKeyBind() {
+        KeyBind keyBind = new KeyBind();
+
+        // Bind para copiar código
+        keyBind.on(KeyCode.Q, () -> copyToClipboard(this.cod, "Código copiado + "), KeyBind.Modifier.CTRL);
+
+        // Binds para CNPJ (Shift + 1,2,3)
+        for (int i = 0; i < 3; i++) {
+            final int index = i;
+            KeyCode keyCode = getDigitKeyCode(index + 1);
+
+            keyBind.on(keyCode, () -> copyCnpjAtIndex(index), KeyBind.Modifier.SHIFT);
+            keyBind.on(keyCode, () -> copyPrecoAtIndex(index), KeyBind.Modifier.ALT);
+        }
+
+        return keyBind;
+    }
+
+    private KeyCode getDigitKeyCode(int digit) {
+        return switch (digit) {
+            case 1 -> KeyCode.DIGIT1;
+            case 2 -> KeyCode.DIGIT2;
+            case 3 -> KeyCode.DIGIT3;
+            default -> throw new IllegalArgumentException("Digit must be 1-3");
+        };
+    }
+
+    private void copyCnpjAtIndex(int index) {
+        if (produtoModelListState.get().size() > index) {
+            var model = produtoModelListState.get().get(index);
+            String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
+            copyToClipboard(cnpjFromUrl, String.format("CNPJ(%d): %s copiado com sucesso", index + 1, cnpjFromUrl));
+        }
+    }
+
+    private void copyPrecoAtIndex(int index) {
+        if (produtoModelListState.get().size() > index) {
+            var model = produtoModelListState.get().get(index);
+            String precoFormatado = Utils.toBRLNumber(model.getPrecoEncontrado());
+            copyToClipboard(precoFormatado, String.format("Preço copiado para o teclado! (Preço %d)", index + 1));
+        }
+    }
+
 
     private void copyToClipboard(String strToCopy, String message) {
         var clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
