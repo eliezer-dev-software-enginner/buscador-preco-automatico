@@ -135,6 +135,7 @@ public class ProdutoDetails implements ScreenComponent {
 
         // Bind para copiar código
         keyBind.on(KeyCode.Q, () -> copyToClipboard(this.cod, "Código copiado + "), KeyBind.Modifier.CTRL);
+        keyBind.on(KeyCode.ESCAPE, () -> ctx.navigate("produtos"));
 
         // Binds para CNPJ (Shift + 1,2,3)
         for (int i = 0; i < 3; i++) {

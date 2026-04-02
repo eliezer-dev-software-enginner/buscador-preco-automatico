@@ -1,16 +1,16 @@
 package my_app.screens.homescreen;
 
 import javafx.stage.Stage;
-import megalodonte.*;
+import megalodonte.ComputedState;
+import megalodonte.State;
+import megalodonte.v2.Show;
 import megalodonte.base.Redirect;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.components.*;
-import megalodonte.components.inputs.Input;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
-import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
 import megalodonte.router.v4.Router;
 import megalodonte.router.v4.ScreenContext;

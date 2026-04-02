@@ -1,7 +1,6 @@
 package my_app.screens.produtostablescreen;
 
 import javafx.scene.input.*;
-import javafx.stage.Stage;
 import megalodonte.ListState;
 import megalodonte.State;
 import megalodonte.base.UI;
@@ -18,20 +17,14 @@ import my_app.models.ProdutoModel;
 
 import java.util.List;
 
-import static my_app.screens.produtostablescreen.ProdutoComponents.cnpjFromUrl;
-
 public class ProdutosTableScreen implements ScreenComponent {
-
-    private final Stage stage;
-
     private final ScreenContext screenContext;
-    private final ListState<ProdutoModel> produtosListState = ListState.of(List.of());
+    private final ListState<ProdutoModel> produtosListState = ListState.ofEmpty();
     private final State<String> searchState = State.of(""); // <- novo
-    private final ListState<ProdutoModel> filteredListState = ListState.of(List.of()); // <- novo
+    private final ListState<ProdutoModel> filteredListState = ListState.ofEmpty(); // <- novo
 
     public ProdutosTableScreen(ScreenContext screenContext) {
         this.screenContext = screenContext;
-        this.stage = screenContext.selfStage();
     }
 
     @Override
@@ -79,7 +72,6 @@ public class ProdutosTableScreen implements ScreenComponent {
     }
 
 
-
     void fetchData(){
         try{
             var list = Main.jsonDB.listarProdutos();
@@ -104,27 +96,6 @@ public class ProdutosTableScreen implements ScreenComponent {
                 .column("Data de criação", it -> DateUtils.millisToBrazilianDateTime(it.getDataCriacao()))
                 .end()
                 .build()
-                .onItemDoubleClick(it -> {
-                    screenContext.navigate("produto-details/"+it.getCodigo());
-
-
-//                    List<ProdutoModel> fornecedores =
-//                            null;
-//                    try {
-//                        fornecedores = Main.jsonDB.listarProdutosPorCodigo(it.getCodigo());
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//
-//                    Map<KeyCombination, Runnable> shortcuts = new HashMap<>();
-//
-//
-//                    ProdutoComponents.ShowModal(
-//                            ProdutoComponents.ItemDetails(it, stage),
-//                            800,
-//                            690,
-//                            shortcuts
-//                    );
-                });
+                .onItemDoubleClick(it -> screenContext.navigate("produto-details/"+it.getCodigo()));
     }
 }
