@@ -29,6 +29,6 @@ public class AppRouter {
                         new RouteProps(900, 550, "Listagem de produtos", true))
         );
 
-        return new Router(routes, "home");
+        return new Router(routes, "produtos");
     }
 }

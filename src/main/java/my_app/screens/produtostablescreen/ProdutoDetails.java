@@ -1,13 +1,9 @@
 package my_app.screens.produtostablescreen;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import megalodonte.ComputedState;
+import megalodonte.ForEachState;
 import megalodonte.ListState;
 import megalodonte.State;
 import megalodonte.base.KeyBind;
@@ -23,20 +19,15 @@ import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.RouteParamsAware;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.related.TextVariant;
 import my_app.*;
-import my_app.models.FornecedorModel;
 import my_app.models.ProdutoModel;
-import org.controlsfx.control.Notifications;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-public class ProdutoDetails implements ScreenComponent, RouteParamsAware {
-
+public class ProdutoDetails implements ScreenComponent {
     private final ScreenContext ctx;
     private String cod;
     ListState<ProdutoModel> produtoModelListState = ListState.of(List.of());
@@ -46,86 +37,92 @@ public class ProdutoDetails implements ScreenComponent, RouteParamsAware {
     }
 
     @Override
-    public void onRouteParams(Map<String, String> params) {
+    public void onMount() {
+        var params = ctx.getParams();
         this.cod = params.get("cod");
 
-        System.out.println("cod received: " + cod);
-    }
-
-    @Override
-    public void onMount() {
         try{
           var produtos =  Main.jsonDB.listarProdutosPorCodigo(cod);
           UI.runOnUi(()-> produtoModelListState.set(produtos));
-        }catch (Exception e){}
-//
-//        KeyBind keyBind = new KeyBind()
-//                .on(KeyCode.DIGIT1, ()-> {}, KeyBind.Modifier.SHIFT)
-//                .on(KeyCode.S,  () -> System.out.println("salvar"), KeyBind.Modifier.CTRL)
-//                .on(KeyCode.F5, () -> System.out.println("reload"));
+        }catch (Exception _){}
 
-        //ctx.whenReady((scene)-> keyBind.attach(scene));
+        KeyBind keyBind = new KeyBind()
+                .on(KeyCode.Q, ()-> copyToClipboard(this.cod,"Código copiado"), KeyBind.Modifier.CTRL)
+                //copia os 3 cnpj
+                .on(KeyCode.DIGIT1, ()-> {
+                   var model = produtoModelListState.get(0);
+                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
+                    copyToClipboard(cnpjFromUrl, "CNPJ(1): " + cnpjFromUrl + " copiado com sucesso");
+                }, KeyBind.Modifier.SHIFT)
+                .on(KeyCode.DIGIT2, ()-> {
+                    var model = produtoModelListState.get(1);
+                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
+                    copyToClipboard(cnpjFromUrl, "CNPJ(2): " + cnpjFromUrl + " copiado com sucesso");
+                }, KeyBind.Modifier.SHIFT)
+                .on(KeyCode.DIGIT3, ()-> {
+                    var model = produtoModelListState.get(2);
+                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
+                    copyToClipboard(cnpjFromUrl, "CNPJ(3): " + cnpjFromUrl + " copiado com sucesso");
+                }, KeyBind.Modifier.SHIFT)
+
+                //copia is 3 preços
+                .on(KeyCode.DIGIT1, ()-> {
+                    var model = produtoModelListState.get(0);
+                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 1)");
+                }, KeyBind.Modifier.ALT)
+                .on(KeyCode.DIGIT2, ()-> {
+                    var model = produtoModelListState.get(1);
+                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 2)");
+                }, KeyBind.Modifier.ALT)
+                .on(KeyCode.DIGIT3, ()-> {
+                    var model = produtoModelListState.get(2);
+                    copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado! (Preço 3)");
+                }, KeyBind.Modifier.ALT);
+
+        ctx.whenReady((scene)-> keyBind.attach(scene));
     }
 
     @Override
     public Component render() {
-        List<ProdutoModel> fornecedores;
-        try {
-            fornecedores = Main.jsonDB.listarProdutosPorCodigo(cod);
-        } catch (IOException e) {
-            Components.ShowAlertError(e.getMessage());
-            return new Text("Erro ao carregar fornecedores");
-        }
 
-        Column col = new Column(new ColumnProps().paddingAll(20))
-                .c_child(
+        ColumnProps columnProps = new ColumnProps().spacingOf(5);
+
+        ForEachState<ProdutoModel, Component> produtoModelComponentForEachState = ForEachState.of(
+                produtoModelListState, model-> {
+                    String cnpjFromUrl = JsonDB.cnpjFromUrl(model.getUrlEncontrada());
+                    int index = produtoModelListState.indexOf(model) + 1;
+
+                    return new Column(columnProps)
+                            .children(
+                                    Components.TextWithDetailsAndButton("URL: ", model.getUrlEncontrada(),
+                                            "Abrir", ()-> Utils.abrirUrlEmBrowser(model.getUrlEncontrada())),
+                                    Components.TextWithDetailsAndButton("CNPJ: ", cnpjFromUrl,String.format( "Copiar (SHIFT + %s)",index), ()-> copyToClipboard(cnpjFromUrl, "CNPJ copiado para o teclado!")),
+                                    Components.TextWithDetailsAndButton("Preço: ", Utils.toBRLCurrency(model.getPrecoEncontrado()),String.format( "Copiar (ALT + %s)",index), ()->{
+                                        copyToClipboard(Utils.toBRLNumber(model.getPrecoEncontrado()), "Preço copiado para o teclado!");
+                                    }),
+                                    getItemDetailsRow(model)
+                            );
+                }
+        );
+
+        return new Column(new ColumnProps().paddingAll(20))
+                .children(
                         new Row().children(
                                 new Button("< Voltar").onClick(()-> ctx.navigate("produtos")),
                                 new Text("Detalhes do produto", new TextProps().variant(TextVariant.SUBTITLE))
-                        )
-                )
-                .c_child(new SpacerVertical(20))
-                .c_child(
+                        ),
+                        new SpacerVertical(10),
                         new Row().children(
                                 Components.TextWithDetails("Código: ", cod),
-                                new Button("Copiar código").onClick(()-> copyToClipboard(cod, "Código copiado!"))
-                        )
-                );
-               // .c_child(Components.TextWithDetails("Titulo: ", model.getTituloBusca()));
-
-        for (int i = 0; i < fornecedores.size(); i++) {
-            ProdutoModel f = fornecedores.get(i);
-            String cnpjFromUrl = Main.jsonDB.cnpjFromUrl(f.getUrlEncontrada());
-
-            col.c_child(new Text("-------- Fornecedor " + (i + 1) + " --------------"))
-                    .c_child(Components.TextWithDetailsAndButton("URL: ", f.getUrlEncontrada(),
-                            "Abrir", ()->{
-                                Utils.abrirUrlEmBrowser(f.getUrlEncontrada());
-                            }))
-                    .c_child(Components.TextWithDetailsAndButton("CNPJ: ", cnpjFromUrl,"Copiar", ()->{
-                        copyToClipboard(cnpjFromUrl, "CNPJ copiado para o teclado!");
-                    }))
-                    .c_child(Components.TextWithDetailsAndButton("Preço: ", Utils.toBRLCurrency(f.getPrecoEncontrado()),"Copiar preço", ()->{
-                        copyToClipboard(Utils.toBRLNumber(f.getPrecoEncontrado()), "Preço copiado para o teclado!");
-                    }))
-                    .c_child(new SpacerVertical(20))
-                    .c_child(ProdutoDetails.getItemDetailsRow(f))
-                    .c_child(new SpacerVertical(10));
-        }
-
-        return col;
+                                new Button("Copiar código (CTRL + q)").onClick(()-> copyToClipboard(cod, "Código copiado!"))
+                        ),
+                        new SpacerVertical(30)
+                )
+                .items(produtoModelComponentForEachState, 20);
     }
 
 
-    private void copyToClipboard(String strToCopy, String message) {
-        var clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-        var content = new ClipboardContent();
-        content.putString(strToCopy);
-        clipboard.setContent(content);
-        Components.ShowPopup(ctx.selfStage(), message);
-    }
-
-    public static Row getItemDetailsRow(ProdutoModel f) {
+    public Row getItemDetailsRow(ProdutoModel f) {
         final State<Boolean> imprimiu = State.of(f.getImprimiu());
         final var imprimiuStr = ComputedState.of(()-> imprimiu.get()? "Foi Impresso": "Marcar como impresso", imprimiu);
 
@@ -160,5 +157,14 @@ public class ProdutoDetails implements ScreenComponent, RouteParamsAware {
                         })
                 );
     }
+
+    private void copyToClipboard(String strToCopy, String message) {
+        var clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+        var content = new ClipboardContent();
+        content.putString(strToCopy);
+        clipboard.setContent(content);
+        Components.ShowPopup(ctx.selfStage(), message);
+    }
+
 
 }

@@ -105,14 +105,7 @@ public class ProdutosTableScreen implements ScreenComponent {
                 .end()
                 .build()
                 .onItemDoubleClick(it -> {
-                    System.out.println("double clicked");
-                    System.out.println(it.getId());
-
-                    try{
-                        screenContext.navigate("produto-details/"+it.getCodigo());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    screenContext.navigate("produto-details/"+it.getCodigo());
 
 
 //                    List<ProdutoModel> fornecedores =
@@ -125,29 +118,6 @@ public class ProdutosTableScreen implements ScreenComponent {
 //
 //                    Map<KeyCombination, Runnable> shortcuts = new HashMap<>();
 //
-//                    if (!fornecedores.isEmpty()) {
-//                        ProdutoModel f1 = fornecedores.get(0);
-//                        shortcuts.put(
-//                                new KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.SHIFT_DOWN),
-//                                () -> copyCnpjFromProduto(f1)
-//                        );
-//                    }
-//
-//                    if (fornecedores.size() > 1) {
-//                        ProdutoModel f2 = fornecedores.get(1);
-//                        shortcuts.put(
-//                                new KeyCodeCombination(KeyCode.DIGIT2, KeyCombination.SHIFT_DOWN),
-//                                () -> copyCnpjFromProduto(f2)
-//                        );
-//                    }
-//
-//                    if (fornecedores.size() > 2) {
-//                        ProdutoModel f3 = fornecedores.get(2);
-//                        shortcuts.put(
-//                                new KeyCodeCombination(KeyCode.DIGIT3, KeyCombination.SHIFT_DOWN),
-//                                () -> copyCnpjFromProduto(f3)
-//                        );
-//                    }
 //
 //                    ProdutoComponents.ShowModal(
 //                            ProdutoComponents.ItemDetails(it, stage),
@@ -156,20 +126,5 @@ public class ProdutosTableScreen implements ScreenComponent {
 //                            shortcuts
 //                    );
                 });
-    }
-
-    void copyCnpjFromProduto(ProdutoModel produto) {
-        String cnpj = cnpjFromUrl(produto.getUrlEncontrada());
-
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent content = new ClipboardContent();
-        content.putString(cnpj);
-        clipboard.setContent(content);
-
-        UI.runOnUi(()-> Components.ShowPopup(stage, "CNPJ copiado: " + cnpj));
-
-        Components.ShowPopup(stage, "CNPJ copiado: " + cnpj);
-
-        System.out.println("CNPJ copiado: " + cnpj);
     }
 }
