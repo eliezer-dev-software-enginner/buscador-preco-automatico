@@ -144,6 +144,16 @@ public class Components {
         return InputColumn(label, inputState, "");
     }
 
+
+    public static Component InputColumnComFocusHandler(String label, ReadableState<String> inputState, Runnable focusChangeHandler) {
+        return new Column()
+                .c_child(new Text(label))
+                .c_child(new Input((State<String>) inputState).onChangeFocus(focus -> {
+                            if (!focus) focusChangeHandler.run();
+                        })
+                );
+    }
+
     private final static SelectProps selectProps = new SelectProps()
             .minWidth(100)
             .height(31);
