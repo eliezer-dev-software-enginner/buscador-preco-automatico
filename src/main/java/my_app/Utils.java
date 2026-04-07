@@ -14,6 +14,11 @@ import java.util.function.Consumer;
 
 public class Utils {
 
+    /** Extrai nome legível da URL base: "https://www.loganmed.com.br" → "loganmed.com.br" */
+    public static String nomeFonte(String urlBase) {
+        return urlBase.replace("https://", "").replace("www.", "").replaceAll("/.*", "");
+    }
+
     public static void pesquisarTextNoGoogle(String text) {
         try {
             String encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8);

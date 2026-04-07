@@ -20,6 +20,7 @@ import my_app.Main;
 import my_app.models.ProdutoModel;
 import my_app.webscrapping.CotacaoService;
 import my_app.webscrapping.CotacaoService.ResultadoCotacao;
+import my_app.webscrapping.CotacaoServicev2;
 import org.controlsfx.control.Notifications;
 
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class HomeScreen implements ScreenComponent {
         return Utils.toBRLCurrency(BigDecimal.valueOf((p1 + p2 + p3) / 3));
     }, precoState1, precoState2, precoState3);
 
-    private final CotacaoService cotacaoService = new CotacaoService();
+    private final CotacaoServicev2 cotacaoService = new CotacaoServicev2();
 
     public HomeScreen(ScreenContext context) { this.context = context; }
 
@@ -187,9 +188,9 @@ public class HomeScreen implements ScreenComponent {
                 tituloBusca.get().trim(),
                 palavrasChave.get(),
                 resultados -> UI.runOnUi(() -> {
-                    preencherSlot(resultados.get(0), fonteLabel1, urlState1, precoState1);
-                    preencherSlot(resultados.get(1), fonteLabel2, urlState2, precoState2);
-                    preencherSlot(resultados.get(2), fonteLabel3, urlState3, precoState3);
+                   // preencherSlot(resultados.get(0), fonteLabel1, urlState1, precoState1);
+                  //  preencherSlot(resultados.get(1), fonteLabel2, urlState2, precoState2);
+                  //  preencherSlot(resultados.get(2), fonteLabel3, urlState3, precoState3);
                     buscando.set(false);
                     Components.ShowPopup(context.selfStage(),"Busca de preços finalizada");
                     AudioUtils.playAudio("mixkit-correct-answer-tone-2870.wav");
