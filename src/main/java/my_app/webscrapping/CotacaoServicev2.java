@@ -36,8 +36,6 @@ public class CotacaoServicev2 {
     // --- Configurações de performance ---
     private static final int TIMEOUT_TOTAL_SEGUNDOS = 30;
     private static final int LIMITE_POR_SCRAPER     = 10;
-    private static final int PNCP_MAX_PAGINAS       = 3;   // ↑ para mais resultados, ↓ para mais velocidade
-    private static final int PNCP_JANELA_DIAS       = 210;
 
     private final List<WebscrappingBase> scrapers = List.of(
             new LoganMedScrapper(),
