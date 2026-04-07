@@ -24,6 +24,7 @@ import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.related.TextVariant;
 import my_app.*;
 import my_app.models.ProdutoModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -82,9 +83,20 @@ public class ProdutoDetails implements ScreenComponent {
                                 Components.TextWithDetails("Código: ", cod),
                                 new Button("Copiar código (CTRL + q)").onClick(()-> copyToClipboard(cod, "Código copiado!"))
                         ),
+                        new SpacerVertical(10),
+                        new Row().children(
+                                Components.TextWithDetails("Data (60 dias): ", getDateAfter60Days()),
+                                new Button("Copiar data (CTRL + d)").onClick(()-> copyToClipboard(cod, getMessageDt60dias(getDateAfter60Days())))
+                        ),
                         new SpacerVertical(30)
                 )
                 .items(produtoModelComponentForEachState, 20);
+    }
+
+    public static String getDateAfter60Days() {
+        java.time.LocalDate date = java.time.LocalDate.now().plusDays(60);
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return date.format(formatter);
     }
 
 
@@ -165,6 +177,8 @@ public class ProdutoDetails implements ScreenComponent {
         // Bind para copiar código
         keyBind.on(KeyCode.Q, () -> copyToClipboard(this.cod, "Código copiado + "), KeyBind.Modifier.CTRL);
         keyBind.on(KeyCode.ESCAPE, () -> ctx.navigate("produtos"));
+        String dt60dias = getDateAfter60Days();
+        keyBind.on(KeyCode.D, () -> copyToClipboard(dt60dias, getMessageDt60dias(dt60dias)), KeyBind.Modifier.CTRL);
 
         // Binds para CNPJ (Shift + 1,2,3)
         for (int i = 0; i < 3; i++) {
@@ -176,6 +190,11 @@ public class ProdutoDetails implements ScreenComponent {
         }
 
         return keyBind;
+    }
+
+    @NotNull
+    private static String getMessageDt60dias(String dt60dias) {
+        return "Data copiada " + dt60dias;
     }
 
     private KeyCode getDigitKeyCode(int digit) {
