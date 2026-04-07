@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import megalodonte.ReadableState;
 import megalodonte.State;
+import megalodonte.base.Redirect;
 import megalodonte.base.components.Component;
 import megalodonte.components.Button;
 import megalodonte.components.Select;
@@ -39,6 +40,11 @@ import java.util.function.Function;
 import static my_app.Utils.formatPhone;
 
 public class Components {
+
+    public static Button ButtonFollowMe(){
+        return new Button("Siga-me no Github")
+                .onClick(() -> Redirect.to("https://github.com/eliezer-dev-software-enginner"));
+    }
 
     public static void ShowModal(Component ui,int width, int height){
         Stage stage = new Stage();

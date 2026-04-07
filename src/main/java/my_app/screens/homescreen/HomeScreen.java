@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static my_app.Components.*;
+import static my_app.screens.homescreen.HomeScreenComponents.produtoForm;
 
 public class HomeScreen implements ScreenComponent {
 
@@ -77,7 +78,6 @@ public class HomeScreen implements ScreenComponent {
     private final CotacaoService cotacaoService = new CotacaoService();
 
     public HomeScreen(ScreenContext context) { this.context = context; }
-    public HomeScreen() {}
 
     // =========================================================================
     // Render
@@ -88,8 +88,7 @@ public class HomeScreen implements ScreenComponent {
                 menuBar(),
                 new Column(new ColumnProps().paddingAll(20))
                         .children(
-                                new Button("Siga-me no Github")
-                                        .onClick(() -> Redirect.to("https://github.com/eliezer-dev-software-enginner")),
+                                Components.ButtonFollowMe(),
                                 new SpacerVertical(10),
                                 new Text("Algumas facilidades para agilizar o cadastro de fornecedores no Siplan"),
                                 new SpacerVertical(20),
@@ -147,21 +146,6 @@ public class HomeScreen implements ScreenComponent {
                 produtoForm(url, preco, imprimiu, cadastrou, handleClear)
         );
     }
-
-    ButtonProps propsbtnClearFields = new ButtonProps().bgColor("#C1666B");
-
-    public Component produtoForm(State<String> urlState, State<String> precoState, State<String> imprimiuState,
-                                 State<String> cadastrouNoSiplanState, Runnable handleClear){
-        return new Row(new RowProps().spacingOf(10))
-                .children(
-                        InputColumn("url", urlState, "Url encontrada"),
-                        InputColumnCurrency("Preço", precoState),
-                        SelectColumn("Imprimiu?", List.of("Sim","Não"), imprimiuState, it->it),
-                        SelectColumn("Registou no Siplan?", List.of("Sim","Não"), cadastrouNoSiplanState, it->it),
-                       new Button("Limpar campos", propsbtnClearFields).onClick(handleClear)
-                );
-    }
-
 
 
     // =========================================================================
