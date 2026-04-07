@@ -16,18 +16,14 @@ import megalodonte.ReadableState;
 import megalodonte.State;
 import megalodonte.base.Redirect;
 import megalodonte.base.components.Component;
-import megalodonte.components.Button;
-import megalodonte.components.Select;
-import megalodonte.components.Text;
-import megalodonte.components.TextFlow;
+import megalodonte.components.*;
 import megalodonte.components.inputs.Input;
 import megalodonte.components.inputs.OnChangeResult;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
-import megalodonte.props.InputProps;
-import megalodonte.props.RowProps;
-import megalodonte.props.SelectProps;
-import megalodonte.props.TextProps;
+import megalodonte.props.*;
+import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -129,6 +125,32 @@ public class Components {
     static InputProps getInputProps(String placeholder, int height){
         return   new InputProps().height(height)
                 .placeHolder(placeholder);
+    }
+
+    public static Component InputColumnWithButton(String label, ReadableState<String> inputState,
+                                                  String placeholder, Ikon ikon, Runnable onClickCallback) {
+        var props =  getInputProps(placeholder);
+        TextProps textProps = new TextProps();
+
+        var icon = FontIcon.of(ikon, 15, Color.WHITE);
+
+        return new Row().children(
+                new Column()
+                        .children(
+                                new Text(label, textProps),
+                                new Input((State<String>) inputState,
+                                        props.borderWidth(1).borderColor("black")
+                                )
+                        ),
+                new Column().children(
+                        new SpacerVertical(15),
+                        new Button(Component.CreateFromJavaFxNode(icon), new ButtonProps().height(32))
+                                .onClick(onClickCallback)
+                )
+
+        );
+
+
     }
 
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder) {

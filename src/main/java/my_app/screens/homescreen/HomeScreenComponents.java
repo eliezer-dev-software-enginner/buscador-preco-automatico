@@ -13,6 +13,7 @@ import megalodonte.props.ButtonProps;
 import megalodonte.props.InputProps;
 import megalodonte.props.RowProps;
 import my_app.Utils;
+import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 
 import java.util.List;
 
@@ -65,7 +66,8 @@ public class HomeScreenComponents {
                                  State<String> cadastrouNoSiplanState, Runnable handleClear){
         return new Row(new RowProps().spacingOf(10))
                 .children(
-                        InputColumn("url", urlState, "Url encontrada"),
+                        InputColumnWithButton("url", urlState, "Url encontrada", AntDesignIconsOutlined.SEARCH,
+                                ()->Utils.abrirUrlEmBrowser(urlState.get().trim())),
                         InputColumnCurrency("Preço", precoState),
                         SelectColumn("Imprimiu?", List.of("Sim","Não"), imprimiuState, it->it),
                         SelectColumn("Registou no Siplan?", List.of("Sim","Não"), cadastrouNoSiplanState, it->it),
