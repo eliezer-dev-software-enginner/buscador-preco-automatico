@@ -1,7 +1,12 @@
 package my_app.webscrapping;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import my_app.Utils;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -35,18 +40,18 @@ public class CotacaoServicev2 {
     private static final int PNCP_JANELA_DIAS       = 210;
 
     private final List<WebscrappingBase> scrapers = List.of(
-            new LoganMedScrapper()
-            //new GabmedicScrapper(),
-            //new KajavetScrapper(),
-            //new DrogariaEFarmaScrapper(),
-            //new EspecifarmaScrapper(),
-            //new MagazineMedicaScrapper(),
-            //new RhosseScrapper(),
-            //new DrogaraiaScrapper(),
-            //new CfcarehospitalarScrapper(),
-            //new AlthisScrapperv2(),
-            //new MedjetScrapper(),
-            //new SuturasOnlineScrapper()
+            new LoganMedScrapper(),
+            new GabmedicScrapper(),
+            new KajavetScrapper(),
+            new DrogariaEFarmaScrapper(),
+            new EspecifarmaScrapper(),
+            new MagazineMedicaScrapper(),
+            new RhosseScrapper(),
+            new DrogaraiaScrapper(),
+            new CfcarehospitalarScrapper(),
+            new AlthisScrapperv2(),
+            new MedjetScrapper(),
+            new SuturasOnlineScrapper()
     );
 
     // -------------------------------------------------------------------------
@@ -95,46 +100,103 @@ public class CotacaoServicev2 {
 
         ExecutorService pool = Executors.newFixedThreadPool(scrapers.size() + 1);
 
-        // Dispara tudo em paralelo
-//        Future<ResultadoCotacao> futurePncp =
-//                pool.submit(() -> buscarMelhorPncp(tituloBusca, palavrasChave));
+        // ✅ PNCP em paralelo
+        Future<ResultadoBuscaPNCP> futurePncp =
+                pool.submit(() -> buscarNoPNCP(tituloBusca, palavrasChave));
 
+        // Scrapers
         List<Future<List<ResultadoCotacao>>> futuresScrapers = scrapers.stream()
                 .map(s -> pool.submit(() -> buscarComScore(s, tituloBusca, palavrasChave)))
                 .toList();
 
         pool.shutdown();
 
-        // Aguarda com timeout global — ninguém segura a UI mais que isso
         try {
             pool.awaitTermination(TIMEOUT_TOTAL_SEGUNDOS, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
 
-        // Coleta PNCP (pode ter terminado ou não dentro do timeout)
-       // ResultadoCotacao pncp = obter(futurePncp, ResultadoCotacao.vazio("PNCP"));
+        // ✅ Converte PNCP → ResultadoCotacao
+        ResultadoCotacao pncpCotacao = ResultadoCotacao.vazio("PNCP");
+        try {
+            ResultadoBuscaPNCP pncp = futurePncp.get(2, TimeUnit.SECONDS);
 
-        // Coleta e ordena marketplaces por score
+            if (pncp != null && pncp.valorUnitario() > 0) {
+                pncpCotacao = new ResultadoCotacao(
+                        pncp.descricao(),
+                        "R$ " + pncp.valorUnitario(),
+                        pncp.url(),
+                        "PNCP",
+                        10, // score alto pra sempre priorizar
+                        true
+                );
+            }
+        } catch (Exception ignored) {}
+
+        // Coleta marketplaces
         List<ResultadoCotacao> todos = new ArrayList<>();
         for (var f : futuresScrapers) {
             todos.addAll(obter(f, List.of()));
         }
+
         todos.sort(Comparator.comparingInt(ResultadoCotacao::score).reversed());
 
-        // Top 3 de fontes diferentes
+        // Top 3 fontes diferentes
         List<ResultadoCotacao> top3 = new ArrayList<>();
         for (ResultadoCotacao r : todos) {
-            if (top3.stream().noneMatch(x -> x.fonte().equals(r.fonte()))) top3.add(r);
+            if (top3.stream().noneMatch(x -> x.fonte().equals(r.fonte()))) {
+                top3.add(r);
+            }
             if (top3.size() == 3) break;
         }
-        while (top3.size() < 3) top3.add(ResultadoCotacao.vazio("Marketplace " + top3.size()));
 
-        // Monta slots: slot1 = PNCP ou fallback pro 3º marketplace
-        //ResultadoCotacao slot1 = pncp.encontrado() ? pncp : top3.get(2);
-        ResultadoCotacao slot1 = top3.get(2);
+        while (top3.size() < 3) {
+            top3.add(ResultadoCotacao.vazio("Marketplace " + top3.size()));
+        }
+
+        // ✅ Slots finais
+        ResultadoCotacao slot1 = pncpCotacao.encontrado() ? pncpCotacao : top3.get(2);
         ResultadoCotacao slot2 = top3.get(0);
         ResultadoCotacao slot3 = top3.get(1);
 
         return List.of(slot1, slot2, slot3);
+    }
+    public record ResultadoBuscaPNCP(float valorUnitario, String descricao, String unidadeMedida, String[] palavrasComMatch, String url){}
+
+    private ResultadoBuscaPNCP buscarNoPNCP(String titulo, String palavrasChave) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            String jsonBody = """
+            {
+                "titulo": "%s",
+                "busca": "%s"
+            }
+            """.formatted(titulo, palavrasChave);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:3000/buscar-valores-unitarios"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("Erro na requisição: " + response.statusCode());
+            }
+
+            record Response(
+            String status,
+            ResultadoBuscaPNCP data,
+            String err
+            ){}
+
+            ObjectMapper mapper = new ObjectMapper();
+            var map = mapper.readValue(response.body(), Response.class);
+            return map.data;
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar no PNCP", e);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -166,7 +228,8 @@ public class CotacaoServicev2 {
     }
 
     static void main() {
-      var list = new CotacaoServicev2().buscar("eletrodo descartável ecg","100 unidades");
+       var cs = new CotacaoServicev2();
+      //var list = new CotacaoServicev2().buscar("eletrodo descartável ecg","100 unidades");
       /*
       ResultadoCotacao[nomeProduto=Eletrodo ECG Quadrado C/ 50 Unidades - Solidor, preco=R$ 16,50, link=https://www.loganmed.com.br/eletrodo-ecg-quadrado-c-50-unidades-solidor, fonte=loganmed.com.br, score=0, encontrado=true]
 ResultadoCotacao[nomeProduto=Eletrodo Descartável ECG Retangular Adulto Pacote com 50 - Medix, preco=14,90, link=https://www.althis.com.br/eletrodo-descartavel-p-ecg-adulto-pct-c-50-und-medix, fonte=althis.com.br, score=8, encontrado=true]
@@ -174,6 +237,8 @@ ResultadoCotacao[nomeProduto=Eletrodo Descartável ECG 44x32mm com 50 Un. Solido
 
        */
 
-      list.forEach(System.out::println);
+      //list.forEach(System.out::println);
+       var res = cs.buscarNoPNCP("agua sanitaria","incolor");
+        System.out.println(res.descricao);
     }
 }
