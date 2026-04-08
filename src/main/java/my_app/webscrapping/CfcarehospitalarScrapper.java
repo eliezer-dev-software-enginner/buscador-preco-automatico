@@ -7,11 +7,12 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class CfcarehospitalarScrapper extends WebscrappingBase {
 
     public CfcarehospitalarScrapper() {
-        super("https://www.cfcarehospitalar.com.br");
+        super("https://www.cfcarehospitalar.com.br", "cfcare hospitalar");
     }
 
     /*
@@ -30,7 +31,7 @@ public class CfcarehospitalarScrapper extends WebscrappingBase {
         </div>
      */
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String query = search.trim().replace(" ", "+");
         String url = urlBase + "/loja/busca.php?loja=1183384&palavra_busca=" + query;
 
@@ -49,8 +50,10 @@ public class CfcarehospitalarScrapper extends WebscrappingBase {
                 if (!link.isBlank() && !link.startsWith("http"))
                     link = urlBase + link;
 
-                if (!nome.isBlank())
+                if (!nome.isBlank()) {
                     results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
 
             return results;

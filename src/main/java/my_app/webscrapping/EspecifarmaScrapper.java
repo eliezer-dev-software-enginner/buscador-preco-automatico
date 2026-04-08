@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper da Especifarma (www.especifarma.com.br).
@@ -33,11 +34,11 @@ public class EspecifarmaScrapper extends WebscrappingBase {
     private static final String LOJA_ID = "1141379";
 
     public EspecifarmaScrapper() {
-        super("https://www.especifarma.com.br");
+        super("https://www.especifarma.com.br", "Especifarma");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String encoded = URLEncoder.encode(search.trim(), StandardCharsets.UTF_8);
         String url = urlBase + "/loja/busca.php?loja=" + LOJA_ID + "&palavra_busca=" + encoded;
 
@@ -58,7 +59,10 @@ public class EspecifarmaScrapper extends WebscrappingBase {
                 String preco = extrairPreco(produto);
                 String link  = extrairLink(produto);
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

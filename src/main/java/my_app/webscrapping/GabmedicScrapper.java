@@ -7,15 +7,16 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class GabmedicScrapper extends WebscrappingBase {
 
     public GabmedicScrapper() {
-        super("https://www.gabmedic.com.br");
+        super("https://www.gabmedic.com.br","Gabmedic");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String query = search.trim().replace(" ", "+");
         String url = urlBase + "/buscar?q=" + query;
 
@@ -42,7 +43,10 @@ public class GabmedicScrapper extends WebscrappingBase {
                 String link  = produto.select("a.produto-sobrepor").attr("href");
 
                 if (!link.startsWith("http")) link = urlBase + link;
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco,onProgress);
+                }
             }
             return results;
 

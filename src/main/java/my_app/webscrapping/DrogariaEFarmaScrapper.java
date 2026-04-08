@@ -7,15 +7,16 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class DrogariaEFarmaScrapper extends WebscrappingBase {
 
     public DrogariaEFarmaScrapper() {
-        super("https://www.drogariaefarma.com.br");
+        super("https://www.drogariaefarma.com.br", "Drogaria e Farma");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String query = search.trim().replace(" ", "+");
         String url = urlBase + "/search?search_query=" + query;
 
@@ -40,7 +41,10 @@ public class DrogariaEFarmaScrapper extends WebscrappingBase {
 
                 String link = produto.select("input.ProductLink").attr("value");
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

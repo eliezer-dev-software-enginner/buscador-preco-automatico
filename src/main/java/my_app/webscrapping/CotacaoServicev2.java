@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -71,12 +73,18 @@ public class CotacaoServicev2 {
     // -------------------------------------------------------------------------
     // API assíncrona — use esta na HomeScreen
     // -------------------------------------------------------------------------
+
+    BiConsumer<String, String> onProgress;
+
     public void buscarAsync(
             String tituloBusca,
             String palavrasChave,
             Consumer<List<ResultadoCotacao>> onConcluido,
-            Consumer<String> onErro
+            Consumer<String> onErro,
+            BiConsumer<String, String> onProgress
     ) {
+        this.onProgress = onProgress;
+
         Thread.ofVirtual().start(() -> {
             try {
                 onConcluido.accept(buscar(tituloBusca, palavrasChave));
@@ -163,6 +171,8 @@ public class CotacaoServicev2 {
     private ResultadoBuscaPNCP buscarNoPNCP(String titulo, String palavrasChave) {
         try {
             HttpClient client = HttpClient.newHttpClient();
+            onProgress.accept("Iniciando busca no PNCP...", "information");
+            Thread.sleep(Duration.ofSeconds(3));
 
             String jsonBody = """
             {
@@ -180,6 +190,7 @@ public class CotacaoServicev2 {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
+                onProgress.accept("PNCP - Erro na requisição: " + response.statusCode(), "error");
                 throw new RuntimeException("Erro na requisição: " + response.statusCode());
             }
 
@@ -193,6 +204,7 @@ public class CotacaoServicev2 {
             var map = mapper.readValue(response.body(), Response.class);
             return map.data;
         } catch (Exception e) {
+            onProgress.accept("PNCP - rro ao buscar no PNCP: " + e.getMessage(), "error");
             throw new RuntimeException("Erro ao buscar no PNCP", e);
         }
     }
@@ -202,9 +214,12 @@ public class CotacaoServicev2 {
     // -------------------------------------------------------------------------
     private List<ResultadoCotacao> buscarComScore(
             WebscrappingBase scraper, String tituloBusca, String palavrasChave) {
+        String fonte = Utils.nomeFonte(scraper.urlBase);
+
         try {
-            String fonte = Utils.nomeFonte(scraper.urlBase);
-            return scraper.searchProduct(tituloBusca, LIMITE_POR_SCRAPER).stream()
+            onProgress.accept("Iniciando busca do produto em: " + scraper.name, "information");
+            Thread.sleep(Duration.ofSeconds(3));
+            return scraper.searchProduct(tituloBusca, LIMITE_POR_SCRAPER, this.onProgress).stream()
                     .map(r -> new ResultadoCotacao(
                             r.nomeProdutoEncontrado(), r.preco(), r.link(), fonte,
                             KeywordScorerv2.calcularScore(
@@ -212,6 +227,7 @@ public class CotacaoServicev2 {
                             true))
                     .toList();
         } catch (Exception e) {
+            onProgress.accept("Erro ao fazer busca no scrapper: " + fonte + " " + e.getMessage(), "error");
             return List.of();
         }
     }

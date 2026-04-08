@@ -82,7 +82,7 @@ public class HomeScreen implements ScreenComponent {
     @Override
     public Component render() {
         return new Container().children(
-                menuBar(),
+                HomeScreenComponents.menuBar(context),
                 new Column(new ColumnProps().paddingAll(20))
                         .children(
                                 Components.ButtonFollowMe(),
@@ -146,24 +146,6 @@ public class HomeScreen implements ScreenComponent {
 
 
     // =========================================================================
-    // Menu e formulário de cabeçalho
-    // =========================================================================
-    private Component menuBar() {
-        Router router = context.router();
-
-        return new MenuBar()
-                .menu(new Menu("Cadastros")
-                        .item("Fornecedores", () ->
-                                router.spawnWindow("fornecedores",
-                                        e -> System.out.println(e.getMessage())))
-                        .item("Produtos", ()-> router.spawnWindow("produtos",
-                                e -> System.out.println(e.getMessage())))
-                        .item("Abrir siplan-web", ()-> Utils.abrirUrlEmBrowser("https://pm-braspires.siplanweb.com.br/siplan-v2/siplan"))
-                );
-    }
-
-
-    // =========================================================================
     // Ações
     // =========================================================================
     void buscar() {
@@ -194,13 +176,26 @@ public class HomeScreen implements ScreenComponent {
                     Notifications.create()
                             .title("Buscador de preço")
                             .text("Busca de preços finalizada!")
-                            .showWarning();
+                            .showInformation();
                 }),
                 erro -> UI.runOnUi(() -> {
                     buscando.set(false);
                     Components.ShowAlertError("Erro na busca: " + erro);
                     AudioUtils.playAudio("mixkit-wrong-answer-fail-notification-946.wav");
-                })
+                }),
+                (message, type)->{
+                    UI.runOnUi(()->{
+                      var not =  Notifications.create()
+                                .title("Status")
+                                .text(message);
+
+                      if(type.equals("error")){
+                          not.showError();
+                      }else if(type.equals("information")){
+                          not.showInformation();
+                      }
+                    });
+                }
         );
     }
 

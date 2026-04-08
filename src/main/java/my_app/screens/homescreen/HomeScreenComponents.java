@@ -2,16 +2,15 @@ package my_app.screens.homescreen;
 
 import megalodonte.State;
 import megalodonte.base.components.Component;
-import megalodonte.components.Button;
-import megalodonte.components.SpacerHorizontal;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.Text;
+import megalodonte.components.*;
 import megalodonte.components.inputs.Input;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.ButtonProps;
 import megalodonte.props.InputProps;
 import megalodonte.props.RowProps;
+import megalodonte.router.v4.Router;
+import megalodonte.router.v4.ScreenContext;
 import my_app.Utils;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 
@@ -21,6 +20,21 @@ import static my_app.Components.*;
 import static my_app.Components.SelectColumn;
 
 public class HomeScreenComponents {
+
+    public static Component menuBar(ScreenContext context) {
+        Router router = context.router();
+
+        return new MenuBar()
+                .menu(new Menu("Cadastros")
+                        .item("Fornecedores", () ->
+                                router.spawnWindow("fornecedores",
+                                        e -> System.out.println(e.getMessage())))
+                        .item("Produtos", ()-> router.spawnWindow("produtos",
+                                e -> System.out.println(e.getMessage())))
+                        .item("Abrir siplan-web", ()-> Utils.abrirUrlEmBrowser("https://pm-braspires.siplanweb.com.br/siplan-v2/siplan"))
+                );
+    }
+
     public static Row topForm(State<String> codigo,State<String> tituloBusca,
                               Runnable handleClearInputs, Runnable handleClickSearch,
                               Runnable handleClickSave) {

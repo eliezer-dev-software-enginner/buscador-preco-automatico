@@ -48,40 +48,40 @@ public class MainTeste {
         */
 
         System.out.println("=== Medjet ===");
-        scrappingInstance = new MedjetScrapper();
-        list = scrappingInstance.searchProduct("catéter nasal 20 un",10);
-        for (WebscrappingBase.ResultSearch r : list) {
-            System.out.println("Produto: " + r.nomeProdutoEncontrado());
-            System.out.println("Preço  : " + r.preco());
-            System.out.println("Link   : " + r.link());
-        }
-
-        System.out.println("=== Drogaraia ===");
-        var loganMed = new DrogaraiaScrapper();
-        list = loganMed.searchProduct("gel silicone 20g",10);
-        for (WebscrappingBase.ResultSearch r : list) {
-            System.out.println("Produto: " + r.nomeProdutoEncontrado());
-            System.out.println("Preço  : " + r.preco());
-            System.out.println("Link   : " + r.link());
-        }
-
-        System.out.println("=== CCareHospitalar ===");
-        var cfcarehospitalarScrapper = new CfcarehospitalarScrapper();
-        list = cfcarehospitalarScrapper.searchProduct("gel 20g",10);
-        for (WebscrappingBase.ResultSearch r : list) {
-            System.out.println("Produto: " + r.nomeProdutoEncontrado());
-            System.out.println("Preço  : " + r.preco());
-            System.out.println("Link   : " + r.link());
-        }
-
-        System.out.println("=== Althis ===");
-        scrappingInstance = new AlthisScrapperv2();
-        list = scrappingInstance.searchProduct("gel 20g",10);
-        for (WebscrappingBase.ResultSearch r : list) {
-            System.out.println("Produto: " + r.nomeProdutoEncontrado());
-            System.out.println("Preço  : " + r.preco());
-            System.out.println("Link   : " + r.link());
-        }
+//        scrappingInstance = new MedjetScrapper();
+//        list = scrappingInstance.searchProduct("catéter nasal 20 un",10);
+//        for (WebscrappingBase.ResultSearch r : list) {
+//            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+//            System.out.println("Preço  : " + r.preco());
+//            System.out.println("Link   : " + r.link());
+//        }
+//
+//        System.out.println("=== Drogaraia ===");
+//        var loganMed = new DrogaraiaScrapper();
+//        list = loganMed.searchProduct("gel silicone 20g",10);
+//        for (WebscrappingBase.ResultSearch r : list) {
+//            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+//            System.out.println("Preço  : " + r.preco());
+//            System.out.println("Link   : " + r.link());
+//        }
+//
+//        System.out.println("=== CCareHospitalar ===");
+//        var cfcarehospitalarScrapper = new CfcarehospitalarScrapper();
+//        list = cfcarehospitalarScrapper.searchProduct("gel 20g",10);
+//        for (WebscrappingBase.ResultSearch r : list) {
+//            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+//            System.out.println("Preço  : " + r.preco());
+//            System.out.println("Link   : " + r.link());
+//        }
+//
+//        System.out.println("=== Althis ===");
+//        scrappingInstance = new AlthisScrapperv2();
+//        list = scrappingInstance.searchProduct("gel 20g",10);
+//        for (WebscrappingBase.ResultSearch r : list) {
+//            System.out.println("Produto: " + r.nomeProdutoEncontrado());
+//            System.out.println("Preço  : " + r.preco());
+//            System.out.println("Link   : " + r.link());
+//        }
 
     }
 }

@@ -15,15 +15,16 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class AlthisScrapperv2 extends WebscrappingBase {
 
     public AlthisScrapperv2() {
-        super("https://www.althis.com.br");
+        super("https://www.althis.com.br","Althis");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
@@ -86,6 +87,7 @@ public class AlthisScrapperv2 extends WebscrappingBase {
 
                 if (!nome.isBlank()) {
                     results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
                 }
             }
             return results;

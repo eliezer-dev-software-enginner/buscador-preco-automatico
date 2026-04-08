@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper da Magazine Médica (magazinemedica.com.br).
@@ -31,11 +32,11 @@ import java.util.List;
 public class MagazineMedicaScrapper extends WebscrappingBase {
 
     public MagazineMedicaScrapper() {
-        super("https://magazinemedica.com.br");
+        super("https://magazinemedica.com.br","MagazineMedica");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String encoded = URLEncoder.encode(search.trim(), StandardCharsets.UTF_8);
         String url = urlBase + "/busca/?keywords=" + encoded;
 
@@ -61,7 +62,10 @@ public class MagazineMedicaScrapper extends WebscrappingBase {
                 String preco = extrairPreco(produto);
                 String link  = extrairLink(produto);
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco,onProgress);
+                }
             }
             return results;
 

@@ -15,15 +15,16 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class SuturasOnlineScrapper extends WebscrappingBase {
 
     public SuturasOnlineScrapper() {
-        super("https://loja.suturasonline.com.br");
+        super("https://loja.suturasonline.com.br", "Suturas online");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
@@ -57,7 +58,10 @@ public class SuturasOnlineScrapper extends WebscrappingBase {
                 String link = produto.selectFirst("a.space-image") != null
                         ? "https:" + produto.selectFirst("a.space-image").attr("href") : "";
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

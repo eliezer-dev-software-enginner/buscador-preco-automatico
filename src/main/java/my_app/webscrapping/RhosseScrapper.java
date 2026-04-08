@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper da Rhosse (www.rhosse.com.br).
@@ -34,11 +35,11 @@ import java.util.List;
 public class RhosseScrapper extends WebscrappingBase {
 
     public RhosseScrapper() {
-        super("https://www.rhosse.com.br");
+        super("https://www.rhosse.com.br", "Rhosse");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String encoded = URLEncoder.encode(search.trim(), StandardCharsets.UTF_8);
         String url = urlBase + "/busca?q=" + encoded;
 
@@ -54,7 +55,10 @@ public class RhosseScrapper extends WebscrappingBase {
                 String preco = extrairPreco(produto);
                 String link  = extrairLink(produto);
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

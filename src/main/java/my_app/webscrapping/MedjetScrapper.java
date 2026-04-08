@@ -15,6 +15,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper do Medjet (www.medjet.com.br).
@@ -38,11 +39,11 @@ import java.util.List;
 public class MedjetScrapper extends WebscrappingBase {
 
     public MedjetScrapper() {
-        super("https://www.medjet.com.br");
+        super("https://www.medjet.com.br","Medjet");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
@@ -92,7 +93,10 @@ public class MedjetScrapper extends WebscrappingBase {
                     link = href.startsWith("//") ? "https:" + href : href;
                 }
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

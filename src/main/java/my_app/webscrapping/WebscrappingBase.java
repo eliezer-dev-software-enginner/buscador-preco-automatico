@@ -1,24 +1,27 @@
 package my_app.webscrapping;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public abstract class WebscrappingBase {
     protected String urlBase;
+    protected String name;
 
     /**
      * Busca o termo e retorna até {@code limit} resultados.
      * Nunca lança exceção — retorna lista vazia em caso de falha.
      */
-    public abstract List<ResultSearch> searchProduct(String search, int limit);
+    //public abstract List<ResultSearch> searchProduct(String search, int limit);
+    public abstract List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress);
 
     public record ResultSearch(String nomeProdutoEncontrado, String preco, String link) {}
 
-    public WebscrappingBase(String urlBase) {
-        this.urlBase = urlBase;
+    public WebscrappingBase(String urlBase, String name) {
+        this.urlBase = urlBase;this.name = name;
     }
 
     public void setUrlBase(String urlBase) {
@@ -45,5 +48,14 @@ public abstract class WebscrappingBase {
 
     public String getPriceFromUrlOfProduct(String url){
         return "0";
+    }
+
+    protected void transformProductIntoMessage(String nome, String preco, BiConsumer<String, String> onProgress){
+        String message = String.format("%s: Produto encontrado: %s, preço: %s",this.name, nome, preco);
+        try{
+            Thread.sleep(Duration.ofSeconds(5));
+            onProgress.accept(message,"information");
+        }catch (Exception e){}
+
     }
 }

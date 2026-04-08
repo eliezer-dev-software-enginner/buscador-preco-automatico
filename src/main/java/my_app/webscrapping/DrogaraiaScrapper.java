@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper da Drogaria Raia (www.drogaraia.com.br).
@@ -45,11 +46,11 @@ import java.util.List;
 public class DrogaraiaScrapper extends WebscrappingBase {
 
     public DrogaraiaScrapper() {
-        super("https://www.drogaraia.com.br");
+        super("https://www.drogaraia.com.br","DrogaRaia");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
@@ -87,7 +88,10 @@ public class DrogaraiaScrapper extends WebscrappingBase {
                 String preco = extrairPreco(produto);
                 String link  = extrairLink(produto);
 
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome,preco, onProgress);
+                }
             }
             return results;
 

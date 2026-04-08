@@ -7,6 +7,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Scraper do LoganMed.
@@ -33,11 +34,11 @@ import java.util.List;
 public class LoganMedScrapper extends WebscrappingBase {
 
     public LoganMedScrapper() {
-        super("https://www.loganmed.com.br");
+        super("https://www.loganmed.com.br","LoganMed");
     }
 
     @Override
-    public List<ResultSearch> searchProduct(String search, int limit) {
+    public List<ResultSearch> searchProduct(String search, int limit, BiConsumer<String, String> onProgress) {
         String query = search.trim().replace(" ", "+");
         String url = urlBase + "/buscar?q=" + query;
 
@@ -64,7 +65,10 @@ public class LoganMedScrapper extends WebscrappingBase {
                 String link  = produto.select("a.nome-produto").attr("href");
 
                 if (!link.isBlank() && !link.startsWith("http")) link = urlBase + link;
-                if (!nome.isBlank()) results.add(new ResultSearch(nome, preco, link));
+                if (!nome.isBlank()) {
+                    results.add(new ResultSearch(nome, preco, link));
+                    transformProductIntoMessage(nome, preco, onProgress);
+                }
             }
             return results;
 

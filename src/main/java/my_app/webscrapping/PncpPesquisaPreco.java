@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated(forRemoval = true)
 public class PncpPesquisaPreco {
 
     public record ItemEncontrado(
